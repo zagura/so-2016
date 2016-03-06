@@ -8,10 +8,10 @@
 #define  __MZ_LIST_H
 
 #include "mz_contact.h"
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
+// #include <stdlib.h>
+// #include <errno.h>
+// #include <string.h>
+// #include <stdio.h>
 
 struct Node;
 typedef struct Node Node_t;
