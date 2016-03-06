@@ -88,7 +88,7 @@ Node_t* push_front(Node_t* node, Node_t* inserted){
 	return inserted;
 }
 
-Node_t* sort_list(Node_t* head);
+
 
 
 
@@ -103,3 +103,57 @@ Node_t* search_contact(Node_t* head, Contact_t contact){
 }
 
 
+Node_t* swap_in_list(Node_t* left, Node_t* right){
+	/* List interpreted as head on the left side */
+	Node_t* head = NULL;
+	if(left == NULL){
+		head = right;
+	}else if(right == NULL){
+		head = left;
+	}else{
+		right->prev = left->prev;
+		if(right->prev != NULL){
+			right->prev->next = right;
+		}
+		left->next = right->next;
+		if(left->next != NULL){
+			left->next->prev = left;
+		}
+		left->prev = right;
+		right->next = left;
+		head = left;
+	}
+	return head;
+}
+
+Node_t* sort_list(Node_t* head){
+	/*
+	Bubble sort on lists
+	head -> the most left node
+	Mowing right
+	*/
+	Node_t* end = NULL;
+	Node_t* left = head;
+	Node_t* right = NULL;
+	if(head != NULL){
+		right = head->next;
+	}
+	if(right != NULL){
+		while(head != end){
+			if(compare_contacts(head, head->next) > 0){
+				head = swap_in_list(head, head->next);
+				left = head;
+				right = head->next;
+			}
+			while(right != end){
+				if(compare_contacts(left, right) > 0){
+					right = swap_in_list(left, right)->next;
+				}
+				left = right;
+				right = left->next;
+			}
+			end = left;
+		}
+	}
+	return head;
+}
