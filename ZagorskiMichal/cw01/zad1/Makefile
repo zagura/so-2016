@@ -13,12 +13,13 @@ NAME=lib1
 OBJS=mz_contact.o mz_list.o
 SOBJS=s_mz_contact.o s_mz_list.o
 DOBJS=d_mz_contact.o d_mz_list.o
-STATIC=mz_list.a
-DYNAMIC=mz_list.so
+STATIC=libmz_lib.a
+DYNAMIC=libmz_sharedlib.so
+LIBS=mz_list.h mz_contact.h
 SRCS=*.c
 
 all: clean dir static dynamic
-	
+	cp $(LIBS) $(LIBDIR)
 dir:
 	mkdir $(LIBDIR)
 

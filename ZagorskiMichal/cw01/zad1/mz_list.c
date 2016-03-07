@@ -7,11 +7,33 @@
 #include "mz_list.h"
 
 
-struct Node {
-	struct Contact contact;
-	struct Node* next;
-	struct Node* prev;
-};
+void add_next (Node_t* last, Node_t* inserted);
+void add_prev (Node_t* head, Node_t* inserted);
+void add_next (Node_t* node, Node_t* inserted){
+	if(node == NULL){
+		perror("No node to be inserted in");
+	}else if(inserted == NULL){
+		perror("Inserting null node");
+	}else{
+		inserted->next = node->next;
+		node->next = inserted;
+		inserted->prev = node;		
+	}
+}
+
+void add_prev (Node_t* node, Node_t* inserted){
+	if(node == NULL){
+		perror("No node to be inserted in");
+	}else if(inserted == NULL){
+		perror("Inserting null node");
+	}else{
+		inserted->prev = node->prev;
+		node->prev = inserted;
+		inserted->next = node;		
+	}
+}
+
+
 
 void delete_node(Node_t* head){
 	remove_contact_data(head->contact);
@@ -52,29 +74,6 @@ Node_t* push_back (Node_t* head, Node_t* inserted){
 	}
 	return head;
 
-}
-void add_next (Node_t* node, Node_t* inserted){
-	if(node == NULL){
-		perror("No node to be inserted in");
-	}else if(inserted == NULL){
-		perror("Inserting null node");
-	}else{
-		inserted->next = node->next;
-		node->next = inserted;
-		inserted->prev = node;		
-	}
-}
-
-void add_prev (Node_t* node, Node_t* inserted){
-	if(node == NULL){
-		perror("No node to be inserted in");
-	}else if(inserted == NULL){
-		perror("Inserting null node");
-	}else{
-		inserted->prev = node->prev;
-		node->prev = inserted;
-		inserted->next = node;		
-	}
 }
 
 Node_t* push_front(Node_t* node, Node_t* inserted){
@@ -140,13 +139,13 @@ Node_t* sort_list(Node_t* head){
 	}
 	if(right != NULL){
 		while(head != end){
-			if(compare_contacts(head, head->next) > 0){
+			if(compare_contacts(&(head->contact), &(head->next->contact)) > 0){
 				head = swap_in_list(head, head->next);
 				left = head;
 				right = head->next;
 			}
 			while(right != end){
-				if(compare_contacts(left, right) > 0){
+				if(compare_contacts(&(left->contact), &(right->contact)) > 0){
 					right = swap_in_list(left, right)->next;
 				}
 				left = right;
