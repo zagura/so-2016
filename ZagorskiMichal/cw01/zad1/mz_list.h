@@ -21,7 +21,7 @@ struct Node {
 };
 typedef struct Node Node_t;
 
-Node_t* create_list ();
+Node_t* create_list (void);
 Node_t* delete_list (Node_t* head);
 Node_t* push_back (Node_t* head, Node_t* inserted);
 //void add_next (Node_t* last, Node_t* inserted);

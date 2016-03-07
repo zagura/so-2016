@@ -32,7 +32,7 @@ d_%.o: %.c clean_dynamic
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 dynamic: $(DOBJS)
-	$(CC) $(CFLAGS) -shared -fPIC -o $(LIBDIR)/$(DYNAMIC) $(DOBJS)
+	$(CC) $(CFLAGS) -shared -fPIC -Wl,-soname,$(DYNAMIC) -o $(LIBDIR)/$(DYNAMIC) $(DOBJS)
 
 clean_static:
 	rm -f $(OBJS)
