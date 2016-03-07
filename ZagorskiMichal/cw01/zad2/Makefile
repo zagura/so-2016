@@ -3,7 +3,8 @@
 #	6 marca 2016
 
 CC=gcc
-CFLAGS=-Wall -pedantic -std=c99
+CFLAGS=-Wall -std=c99
+#-pedantic
 LIBDIR=../lib
 BINDIR=../bin
 SRCDIR=./
@@ -12,7 +13,7 @@ NAME=zad2
 OBJ=s_test.o
 DL_OBJ=dl_test.o
 
-all: clean dir static dynamic
+all: clean dir static dynamic dll
 	
 dir:
 	mkdir $(BINDIR)
@@ -22,13 +23,14 @@ dir:
 static: $(OBJ)
 	$(CC) $(CFLAGS) -static -L$(LIBDIR) s_test.o -o s_test -lmz_lib
 dynamic: $(OBJ)
-	$(CC) $(CFLAGS) -shared -Wl,-soname,libmz_sharedlib.so s_test.o -o d_test
+	$(CC) $(CFLAGS) -shared -Wl,-soname,libmz_sharedlib.so s_test.o -L$(LIBDIR) -o d_test
 dll: $(DL_OBJ)
-	$(CC) $(CFLAGS)  -shared -Wl,-soname,libmz_sharedlib.so dl_test.o -o dl_test
+	$(CC) $(CFLAGS)  -shared -Wl,-soname,libmz_sharedlib.so dl_test.o -L$(LIBDIR) -o dl_test
 $(OBJ): s_test.c
-	$(CC) $(CFLAGS) -c -o $(OBJ) s_test.c -ldl
+	$(CC) $(CFLAGS) -c -o $(OBJ) s_test.c
 $(DL_OBJ): dl_test.c
-	$(CC) $(CFLAGS) -c -o $(DL_OBJ) dl_test.c
+	$(CC) $(CFLAGS) -c -o $(DL_OBJ) -fPIC dl_test.c  -ldl
+
 
 clean:
 	rm -f s_test d_test dl_test
