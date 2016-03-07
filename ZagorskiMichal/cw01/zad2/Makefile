@@ -9,8 +9,7 @@ BINDIR=../bin
 SRCDIR=./
 #Project name
 NAME=zad2
-SOBJ=s_test.o
-DOBJS=d_test.o
+OBJ=s_test.o
 DL_OBJ=dl_test.o
 
 all: clean dir static dynamic
@@ -18,15 +17,21 @@ all: clean dir static dynamic
 dir:
 	mkdir $(BINDIR)
 
-$(SOBJ): s_test.c
-	$(CC) $(CFLAGS) -c -o $(SOBJ) s_test.c 
-static: $(SOBJ)
-	$(CC) $(CFLAGS) -L$(LIBDIR) s_test.o -o s_test -lmz_lib
-dyanmic:
-	$(CC) $(CFLAGS) -I.
+
+
+static: $(OBJ)
+	$(CC) $(CFLAGS) -static -L$(LIBDIR) s_test.o -o s_test -lmz_lib
+dynamic: $(OBJ)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,libmz_sharedlib.so s_test.o -o d_test
+dll: $(DL_OBJ)
+	$(CC) $(CFLAGS)  -shared -Wl,-soname,libmz_sharedlib.so dl_test.o -o dl_test
+$(OBJ): s_test.c
+	$(CC) $(CFLAGS) -c -o $(OBJ) s_test.c -ldl
+$(DL_OBJ): dl_test.c
+	$(CC) $(CFLAGS) -c -o $(DL_OBJ) dl_test.c
 
 clean:
-	rm -f s_test d_test
+	rm -f s_test d_test dl_test
 	rm -f *.o
 	rm -rf ../bin
 # static: $(SOBJS) dir

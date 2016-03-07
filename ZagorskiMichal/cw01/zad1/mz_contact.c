@@ -152,3 +152,13 @@ void remove_contact_data(Contact_t contact){
 	free(contact.address);
 	free(contact.mail);
 }
+
+Date_t* new_date(int year, int month, int day){
+	Date_t* date = malloc(sizeof(Date_t));
+	init_date(year, month, day, date);
+	return date;
+}
+Date_t* delete_date(Date_t* date){
+	free(date);
+	return NULL;
+}

@@ -42,4 +42,6 @@ int compare_contacts(Contact_t* first, Contact_t* second);
 Contact_t* remove_contact(Contact_t* contact);
 int equal(Contact_t first, Contact_t second);
 void remove_contact_data(Contact_t contact);
+Date_t* new_date(int year, int month, int day);
+Date_t* delete_date(Date_t* date);
 #endif
