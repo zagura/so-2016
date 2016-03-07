@@ -13,13 +13,13 @@
 // #include <string.h>
 // #include <stdio.h>
 
-
 struct Node {
 	struct Contact contact;
 	struct Node* next;
 	struct Node* prev;
 };
 typedef struct Node Node_t;
+
 
 Node_t* create_list (void);
 Node_t* delete_list (Node_t* head);

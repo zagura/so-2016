@@ -31,7 +31,6 @@ struct Contact {
 
 typedef struct Contact Contact_t;
 
-
 Contact_t* create_contact();
 //static Date_t* create_date();
 void init_contact(Contact_t* contact, char* firstname, 
