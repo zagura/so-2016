@@ -113,22 +113,22 @@ int equal(Contact_t first, Contact_t second){
 	init_date(0,0,0,&empty_date);
 	int eq_firstname = 0;
 	if(first.firstname != NULL && second.firstname != NULL){
-		eq_firstname = strcmp(first.firstname, second.firstname);
+		eq_firstname = strncmp(first.firstname, second.firstname, 20);
 		equality += (eq_firstname != 0 ? 1 : 0);
 	}
 	int eq_lastname = 0;
 	if(first.lastname != NULL && second.lastname != NULL){
-		eq_lastname = strcmp(first.lastname, second.lastname);
+		eq_lastname = strncmp(first.lastname, second.lastname, 20);
 		equality += (eq_lastname != 0 ? 1 : 0);
 	}
 	int eq_address = 0;
 	if(first.address != NULL && second.address != NULL){
-		eq_address = strcmp(first.address, second.address);
+		eq_address = strncmp(first.address, second.address, 30);
 		equality += (eq_address != 0 ? 1 : 0);
 	}
 	int eq_mail = 0;
 	if(first.mail != NULL && second.mail != NULL){
-		eq_mail = strcmp(first.mail, second.mail);
+		eq_mail = strncmp(first.mail, second.mail, 30);
 		equality += (eq_mail != 0 ? 1 : 0);
 	}
 	int eq_date = 0;
