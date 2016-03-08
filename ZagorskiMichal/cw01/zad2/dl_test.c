@@ -13,54 +13,68 @@
 #include "../lib/mz_list.h"
 
 typedef struct tms tms_t;
+struct mz_time{
+	tms_t* buffer;
+	clock_t start_real;
+	clock_t before_real;
+	clock_t before_user;
+	clock_t before_system;
+	clock_t user;
+	clock_t real;
+	clock_t sys;
+};
+typedef struct mz_time mz_time_t;
 
-
-void time_count(tms_t** before, tms_t* start, 
-		clock_t* t_before, clock_t t_start, 
-			int* point){
-	tms_t* current_time = calloc((size_t)1, sizeof(tms_t));
-	clock_t time_of_call = times(current_time);
+mz_time_t time_count(mz_time_t* time_point, int* point){
+	clock_t time_of_call = times(time_point->buffer);
+	if(time_of_call == -1){
+		perror("Error during clocking");
+	}
+	time_of_call = clock();
+	time_point->before_real = time_point->real;
+	time_point->before_user = time_point->user;
+	time_point->before_system = time_point->sys;
+	time_point->real = time_of_call;
+	time_point->user = time_point->buffer->tms_utime;
+	time_point->sys = time_point->buffer->tms_stime;
 	printf("Point %d:\n", *point);
 	printf("-------------------------------------------\n");
 	printf("From begin:\n");
-	double sys = (double)(current_time->tms_stime - start->tms_stime) 
+	double sys = (double)(time_point->sys) 
 				/ (double)CLOCKS_PER_SEC * 1000.0;
-	double user = (double)(current_time->tms_utime - start->tms_utime) 
+	double user = (double)(time_point->user) 
 				/ (double)CLOCKS_PER_SEC * 1000.0;
-	double real = (double)(time_of_call - t_start) 
+	double real = (double)(time_point->real) 
 				/ (double)CLOCKS_PER_SEC * 1000.0;
 	
 
 	printf(" - sys: %lf ms \n - user: %lf ms\n - real: %lf ms\n", sys, user, real);
 	printf("-------------------------------------------\n");
 	printf("From earlier call of time check:\n");
-	sys = (double)(current_time->tms_stime - (*before)->tms_stime) 
+	sys = (double)(time_point->sys - time_point->before_system) 
 				/ (double)CLOCKS_PER_SEC * 1000.0;
-	user = (double)(current_time->tms_utime - (*before)->tms_utime) 
+	user = (double)(time_point->user - time_point->before_user) 
 				/ (double)CLOCKS_PER_SEC * 1000.0;
-	real = (double)(time_of_call - (*t_before)) 
+	real = (double)(time_point->real - time_point->before_real) 
 				/ (double)CLOCKS_PER_SEC * 1000.0;
 	printf(" - sys: %lf ms\n - user: %lf ms\n - real: %lf ms\n", sys, user, real);
 	printf("-------------------------------------------\n");
-	free((*before));
-	*before = current_time;
-	*t_before = time_of_call;
 	(*point)++;
-	return;
 }
 
 
 
 int main(){
-	void* mz_lib_handler = dlopen("../lib/libmx_sharedlib.so", RTLD_NOW);
+	void* mz_lib_handler = dlopen("../lib/libmz_sharedlib.so", RTLD_NOW);
+	if(mz_lib_handler == NULL){
+		perror("Wrong opening file");
+	}
 
-	tms_t* start = calloc((size_t)1, sizeof(tms_t));
-	tms_t* before = calloc((size_t)1, sizeof(tms_t));
-	clock_t t_start = times(start);
-	clock_t t_before = (clock_t)start;
-	*before = *start;
-	int i = 1;
-	time_count(&before, start, &t_before, t_start, &i);
+	mz_time_t* prog_time = calloc(1, sizeof(mz_time_t));
+	prog_time->buffer = calloc(1, sizeof(tms_t));
+	int i = 0;
+	time_count(prog_time, &i);
+
 
 	Node_t* (*create_list)(void)  = (Node_t* (*)(void)) dlsym(mz_lib_handler, "create_list");
 	Node_t* head = create_list();
@@ -81,18 +95,17 @@ int main(){
 		(Node_t* (*)(Node_t*, Node_t*))dlsym(mz_lib_handler, "push_front");
 
 	head = push_front(head, contact2);
-
-	time_count(&before, start, &t_before, t_start, &i);
+	time_count(prog_time, &i);
 
 	Node_t* (*search_contact)(Node_t*, Contact_t)  = (Node_t* (*)(Node_t*, Contact_t)) dlsym(mz_lib_handler, "search_contact");
 	date =delete_date(date);
 	Node_t* con3 = search_contact(head, con);
 	printf("Contact2: %p\n ContactS: %p\n", (void*)contact2, (void*)con3);
-	time_count(&before, start, &t_before, t_start, &i);
+	time_count(prog_time, &i);
 
 	Node_t* (*sort_list)(Node_t*)  = (Node_t* (*)(Node_t*))dlsym(mz_lib_handler, "sort_list");
 	sort_list(head);
-	time_count(&before, start, &t_before, t_start, &i);
+	time_count(prog_time, &i);
 	con3 = search_contact(head, con);
 	printf("Contact2: %p\n ContactS: %p\n", (void*)contact2, (void*)con3);
 	Node_t* (*delete_node)(Node_t*) = (Node_t* (*)(Node_t*))dlsym(mz_lib_handler, "delete_node");
@@ -107,13 +120,13 @@ int main(){
 
 	void (*remove_contact_data)(Contact_t)  = (void (*)(Contact_t)) dlsym(mz_lib_handler, "remove_contact_data");
 	remove_contact_data(con);
-	time_count(&before, start, &t_before, t_start, &i);
-	free(before);
-	free(start);
+	time_count(prog_time, &i);
 	if( dlclose(mz_lib_handler) == 0){
 		printf("Success during closing lib...\n");
 	}else{
 		printf("%s", dlerror());
 	}
+	free(prog_time->buffer);
+	free(prog_time);
     return 0;
 }
