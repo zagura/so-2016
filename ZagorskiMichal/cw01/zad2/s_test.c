@@ -75,8 +75,12 @@ int main(){
 	time_count(&before, start, &t_before, t_start, &i);
 	sort_list(head);
 	time_count(&before, start, &t_before, t_start, &i);
-	search_contact(head, con);
+	con3 = search_contact(head, con);
 	printf("Contact2: %p\n ContactS: %p\n", (void*)contact2, (void*)con3);
+	Node_t* prev = delete_node(head->next);
+	if(prev == head){
+		prev = NULL;
+	}
 	head = delete_list(head);
 	contact2 = NULL;
 	con3 = NULL;

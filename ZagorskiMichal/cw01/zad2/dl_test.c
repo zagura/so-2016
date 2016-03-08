@@ -63,15 +63,14 @@ int main(){
 	time_count(&before, start, &t_before, t_start, &i);
 
 	Node_t* (*create_list)(void)  = (Node_t* (*)(void)) dlsym(mz_lib_handler, "create_list");
-	/*(Node_t* (*)(void))*/
 	Node_t* head = create_list();
-	Date_t* (*new_date)(int, int, int) = /*(Date_t* (*)(int, int, int))*/ dlsym(mz_lib_handler, "new_date");
+	Date_t* (*new_date)(int, int, int) = (Date_t* (*)(int, int, int)) dlsym(mz_lib_handler, "new_date");
 	Date_t* date = new_date(1995,11,22);
 //	typedef void (*init_fun)(Contact_t*, char*, char*, char*, char*, unsigned long long, Date_t) init_fun2;
 	void (*init_contact)(Contact_t*, char*, char*, char*, char*, unsigned long long, Date_t) = 
-		/*(void (*)(Contact_t*, char*, char*, char*, char*, unsigned long long, Date_t))*/ dlsym(mz_lib_handler, "init_contact");
+		(void (*)(Contact_t*, char*, char*, char*, char*, unsigned long long, Date_t)) dlsym(mz_lib_handler, "init_contact");
 	init_contact(&(head->contact), "Michal", "Zagorski", "mzagorsk@student.agh.edu.pl", "Budryka 123", 123456789, *date);
-	Date_t* (*delete_date)(Date_t*) = /*(Date_t* (*)(Date_t*))*/dlsym(mz_lib_handler, "delete_date");
+	Date_t* (*delete_date)(Date_t*) = (Date_t* (*)(Date_t*))dlsym(mz_lib_handler, "delete_date");
 	Node_t* contact2 = create_list();
 	date = delete_date(date);
 	date = new_date(1970,11,22);
@@ -94,9 +93,13 @@ int main(){
 	Node_t* (*sort_list)(Node_t*)  = (Node_t* (*)(Node_t*))dlsym(mz_lib_handler, "sort_list");
 	sort_list(head);
 	time_count(&before, start, &t_before, t_start, &i);
-	search_contact(head, con);
+	con3 = search_contact(head, con);
 	printf("Contact2: %p\n ContactS: %p\n", (void*)contact2, (void*)con3);
-
+	Node_t* (*delete_node)(Node_t*) = (Node_t* (*)(Node_t*))dlsym(mz_lib_handler, "delete_node");
+	Node_t* prev = delete_node(head->next);
+		if(prev == head){
+		prev = NULL;
+	}
 	Node_t* (*delete_list)(Node_t*) = (Node_t* (*)(Node_t*))dlsym(mz_lib_handler, "delete_list");
 	head = delete_list(head);
 	contact2 = NULL;

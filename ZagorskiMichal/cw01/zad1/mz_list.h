@@ -29,7 +29,7 @@ Node_t* push_back (Node_t* head, Node_t* inserted);
 Node_t* push_front(Node_t* node, Node_t* inserted);
 Node_t* sort_list(Node_t* head);
 Node_t* search_contact(Node_t* head, Contact_t contact);
-//Node_t* delete_node(Node_t* node);
+Node_t* delete_node(Node_t* node);
 
 
 

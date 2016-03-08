@@ -35,11 +35,22 @@ void add_prev (Node_t* node, Node_t* inserted){
 
 
 
-void delete_node(Node_t* head){
+Node_t* delete_node(Node_t* head){
+	Node_t* new_head = NULL;
+	if(head->prev != NULL){
+		head->prev->next = head->next;
+		new_head = head->prev;
+	}
 	remove_contact_data(head->contact);
-	head->next = NULL;
-	head->prev = NULL;
+	if(head->next != NULL){
+		head->next->prev = head->prev;
+		if(new_head == NULL){
+			new_head = head->next;
+		}
+	}
+
 	free(head);
+	return new_head;
 }
 
 Node_t* create_list (){
@@ -55,7 +66,7 @@ Node_t* create_list (){
 Node_t* delete_list (Node_t* head){
 	while(head!=NULL){
 		Node_t* next = head->next;
-		delete_node(head);
+		head = delete_node(head);
 		head = next;
 	}
 	return head;
