@@ -7,6 +7,7 @@ CFLAGS=-Wall -std=c99
 #-pedantic
 LIBDIR=../lib
 BINDIR=../bin
+#../bin
 SRCDIR=./
 #Project name
 NAME=zad2
@@ -14,28 +15,29 @@ OBJ=s_test.o
 DL_OBJ=dl_test.o
 
 all: clean dir static dynamic dll
-	
+#export LD_LIBRARY_PATH=../
 dir:
 	mkdir $(BINDIR)
 
 
 
 static: $(OBJ)
-	$(CC) $(CFLAGS) -static -L$(LIBDIR) s_test.o -o s_test -lmz_lib
+	$(CC) $(CFLAGS) -L$(LIBDIR) s_test.o -o $(BINDIR)/s_test -lmz_lib
 dynamic: $(OBJ)
-	$(CC) $(CFLAGS) -shared -Wl,-soname,libmz_sharedlib.so s_test.o -L$(LIBDIR) -o d_test
+	$(CC) $(CFLAGS) s_test.o -L$(LIBDIR) -o $(BINDIR)/d_test -lmz_sharedlib -Wl,-rpath,../lib
 dll: $(DL_OBJ)
-	$(CC) $(CFLAGS)  -shared -Wl,-soname,libmz_sharedlib.so dl_test.o -L$(LIBDIR) -o dl_test
+	$(CC) $(CFLAGS) dl_test.o -L$(LIBDIR) -o $(BINDIR)/dl_test  -ldl
+#-Wl,-soname,../lib/libmz_sharedlib.so
 $(OBJ): s_test.c
-	$(CC) $(CFLAGS) -c -o $(OBJ) s_test.c
+	$(CC) $(CFLAGS) -fPIC -c -o $(OBJ) s_test.c
 $(DL_OBJ): dl_test.c
-	$(CC) $(CFLAGS) -c -o $(DL_OBJ) -fPIC dl_test.c  -ldl
+	$(CC) $(CFLAGS) -c -o $(DL_OBJ) -fPIC dl_test.c 
 
 
 clean:
 	rm -f s_test d_test dl_test
 	rm -f *.o
-	rm -rf ../bin
+	rm -rf $(BINDIR)
 # static: $(SOBJS) dir
 # 	ar crs $(LIBDIR)/$(STATIC) $(SOBJS)
 
