@@ -25,7 +25,7 @@ struct mz_time{
 };
 typedef struct mz_time mz_time_t;
 
-mz_time_t time_count(mz_time_t* time_point, int* point){
+void time_count(mz_time_t* time_point, int* point){
 	clock_t time_of_call = times(time_point->buffer);
 	if(time_of_call == -1){
 		perror("Error during clocking");
@@ -120,6 +120,16 @@ int main(){
 
 	void (*remove_contact_data)(Contact_t)  = (void (*)(Contact_t)) dlsym(mz_lib_handler, "remove_contact_data");
 	remove_contact_data(con);
+	remove_contact_data(con);
+		for(int i = 0; i < 1000; i++){
+			Node_t* node = malloc(sizeof(Node_t)*i);
+			if(i%100 == 0){
+				int j = 1000 * i;
+				while(j--);
+			}
+			time_count(prog_time, &i);
+			free(node);
+		}
 	time_count(prog_time, &i);
 	if( dlclose(mz_lib_handler) == 0){
 		printf("Success during closing lib...\n");
