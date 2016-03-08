@@ -25,7 +25,7 @@ struct mz_time{
 };
 typedef struct mz_time mz_time_t;
 
-mz_time_t time_count(mz_time_t* time_point, int* point){
+void time_count(mz_time_t* time_point, int* point){
 	clock_t time_of_call = times(time_point->buffer);
 	if(time_of_call == -1){
 		perror("Error during clocking");
@@ -41,11 +41,11 @@ mz_time_t time_count(mz_time_t* time_point, int* point){
 	printf("-------------------------------------------\n");
 	printf("From begin:\n");
 	double sys = (double)(time_point->sys) 
-				/ (double)CLOCKS_PER_SEC * 1000.0;
+				/ ((double)CLOCKS_PER_SEC / 1000.0);
 	double user = (double)(time_point->user) 
-				/ (double)CLOCKS_PER_SEC * 1000.0;
+				/ ((double)CLOCKS_PER_SEC / 1000.0);
 	double real = (double)(time_point->real) 
-				/ (double)CLOCKS_PER_SEC * 1000.0;
+				/ ((double)CLOCKS_PER_SEC / 1000.0);
 	
 
 	printf(" - sys: %lf ms \n - user: %lf ms\n - real: %lf ms\n", sys, user, real);
@@ -101,6 +101,15 @@ int main(){
 	contact2 = NULL;
 	con3 = NULL;
 	remove_contact_data(con);
+		for(int i = 0; i < 1000; i++){
+			Node_t* node = malloc(sizeof(Node_t)*i);
+			if(i%100 == 0){
+				int j = 1000 * i;
+				while(j--);
+			}
+			time_count(prog_time, &i);
+			free(node);
+		}
 	time_count(prog_time, &i);
 	free(prog_time->buffer);
 	free(prog_time);
