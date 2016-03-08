@@ -56,11 +56,11 @@ void init_date(int year, int month, int day, Date_t* date){
 }
 
 
-int compare_contacts(Contact_t* first, Contact_t* second){
+int compare_contacts(Contact_t first, Contact_t second){
 	/*
 		Priority Lastname > Firstname
 	*/
-	
+	/*
 	if(first == NULL){
 		if(second == NULL){
 			perror("Given two empty contacts to comapre");
@@ -69,11 +69,11 @@ int compare_contacts(Contact_t* first, Contact_t* second){
 		return 1;
 	}else if(second == NULL){
 		return -1;
-	}
+	}*/
 	int compare_result = 0;
-	compare_result = strcmp(first->lastname, second->lastname);
+	compare_result = strncmp(first.lastname, second.lastname, 20);
 	if(compare_result == 0){
-		compare_result = strcmp(first->firstname, second->firstname);
+		compare_result = strncmp(first.firstname, second.firstname, 20);
 	}
 	return compare_result;
 }
@@ -147,10 +147,10 @@ int equal(Contact_t first, Contact_t second){
 }
 
 void remove_contact_data(Contact_t contact){
-	free(contact.firstname);
-	free(contact.lastname);
-	free(contact.address);
-	free(contact.mail);
+	//free(contact.firstname);
+	//free(contact.lastname);
+	//free(contact.address);
+	//free(contact.mail);
 }
 
 Date_t* new_date(int year, int month, int day){

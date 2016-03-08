@@ -74,8 +74,8 @@ int main(){
 	Node_t* contact2 = create_list();
 	date = delete_date(date);
 	date = new_date(1970,11,22);
-	init_contact(&(contact2->contact), "Wociech", "Alski", "abc@wp.pl", "Piekna 123", 145456789, *date);
 	Contact_t con;
+	init_contact(&(contact2->contact), "Wociech", "Alski", "abc@wp.pl", "Piekna 123", 145456789, *date);
 	init_contact(&con, "Wociech", "Alski", "abc@wp.pl", (char*)NULL , 145456789, *date);
 	Node_t* (*push_front)(Node_t*, Node_t*) = 
 		(Node_t* (*)(Node_t*, Node_t*))dlsym(mz_lib_handler, "push_front");

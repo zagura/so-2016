@@ -108,6 +108,7 @@ Node_t* search_contact(Node_t* head, Contact_t contact){
 		if(equal(head->contact, contact) == 0){
 			found = head;
 		}
+		head = head->next;
 	}
 	return found;
 }
@@ -140,7 +141,7 @@ Node_t* sort_list(Node_t* head){
 	/*
 	Bubble sort on lists
 	head -> the most left node
-	Mowing right
+	Moving right
 	*/
 	Node_t* end = NULL;
 	Node_t* left = head;
@@ -148,21 +149,32 @@ Node_t* sort_list(Node_t* head){
 	if(head != NULL){
 		right = head->next;
 	}
-	if(right != NULL){
+	if(head->next != NULL){
 		while(head != end){
-			if(compare_contacts(&(head->contact), &(head->next->contact)) > 0){
+			if(compare_contacts((head->contact), (head->next->contact)) > 0){
 				head = swap_in_list(head, head->next);
-				left = head;
-				right = head->next;
 			}
+			left = head;
+			right = head->next;
 			while(right != end){
-				if(compare_contacts(&(left->contact), &(right->contact)) > 0){
+				if(left == NULL || left == NULL){
+					break;
+				}
+				if(compare_contacts((left->contact), (right->contact)) > 0){
 					right = swap_in_list(left, right)->next;
 				}
-				left = right;
-				right = left->next;
+				if(right!= NULL){
+					left = right;
+				}
+				if(left != NULL){
+					right = left->next;
+				}
+				if(end == head) return head;
 			}
-			end = left;
+			if(left == end) return head;
+			if(left != NULL){
+				end = left;
+			}else printf("Wrong Bubble sort");
 		}
 	}
 	return head;
