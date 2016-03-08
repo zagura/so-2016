@@ -37,7 +37,7 @@ void init_contact(Contact_t* contact, char* firstname,
 	char* lastname, char* mail, char* address, 
 	unsigned long long phone, Date_t birth_date);
 void init_date(int year, int month, int day, Date_t* date);
-int compare_contacts(Contact_t* first, Contact_t* second);
+int compare_contacts(Contact_t first, Contact_t second);
 Contact_t* remove_contact(Contact_t* contact);
 int equal(Contact_t first, Contact_t second);
 void remove_contact_data(Contact_t contact);
