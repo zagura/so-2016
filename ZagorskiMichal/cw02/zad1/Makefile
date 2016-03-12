@@ -5,15 +5,17 @@ OBJ = readfile.o generator.o
 SRC = readfile.c generator.c
 
 
-all: $(EXEC)
-
+all: clean $(EXEC)
+	@echo "Build finished succesfully"
+	
 %.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(EXEC): $(OBJ)
-	$(CC) $(CFLAGS) $< $@
+	$(CC) $(CFLAGS) $< -o $@ 
 
 .PHONY: clean all
 clean:
+	@echo "Cleaning project"
 	@rm -f *.o
 	@rm -f $(EXEC)
