@@ -1,0 +1,5 @@
+Rosnąca liczba rekordów znacznie zwiększa czas działania programu. 
+Zauważalny jest fakt, że funkcje biblioteczne są szybsze od bibliotek systemowych, choć różnica jest ogólnie niewielka (porównanie wyników czasów real). 
+Operacje na plikach zabierają duzo mniej czasu w trybie użytkownika, przy małej ilości rekordów user time wynosi praktycznie 0.
+Mała ilość rekordów (10 do 100) wymaga mniej niż 1µs czasu systemowego, czy czasu uzytkownika (Użycie getruage powoduje 'zgubienie' wyników dla małych wartości). 
+Funkcje biblioteczne również działają w trybie jądra, jednak implementacja ta jest wydajniejsza o ok. 20-30% jeśli chodzi o działanie w czasie systemowym.

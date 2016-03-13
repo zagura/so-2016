@@ -22,12 +22,6 @@ int lib_sort(const char* pathname, long record_size);
 int sys_sort(const char* pathname, long record_size);
 
 
-
-
-
-
-
-
 int main(int argc, char** argv){
 	if(argc != 4){
 	  	printf("Wrong number of arguments\n");
@@ -84,7 +78,7 @@ int main(int argc, char** argv){
 	fprintf(results, "\n\n-------------------------------------------------------------------------\n-------------------------------------------------------------------------\n");
 	fprintf(results, "Args:\n- Filename: %s\n- Record's size: %s\n- Type: %s\n", argv[1], argv[2], argv[3]);
 	fprintf(results, "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-	fprintf(results, "Times: \n-real: %lf ms\n- user: %lf ms\n- sys: %lf ms\n", real_time, user_time, sys_time);
+	fprintf(results, "Times: \n- real: %lf ms\n- user: %lf ms\n- sys: %lf ms\n", real_time, user_time, sys_time);
 	fprintf(results, "-------------------------------------------------------------------------\n");
 	fclose(results);
 	return 0;
@@ -92,10 +86,6 @@ int main(int argc, char** argv){
 		perror("Error: ");
 		exit(1);
 }
-
-
-
-
 
 int compare_records(char* rec1, char* rec2){
 	if(*rec1 > *rec2){
@@ -124,7 +114,7 @@ int lib_sort(const char* pathname, long record_size){
 		long begin_offset = ftell(file);
 		long file_size = end_offset - begin_offset;
 		long records_count = file_size / record_size;
-		if(file_size % record_size == 0){
+		if(file_size % record_size != 0){
 			perror("Wrong size of file... Not integer count of records");
 		}
 		for(long i = 1; i < records_count; i++){
@@ -137,36 +127,40 @@ int lib_sort(const char* pathname, long record_size){
 				goto lib_io_error;
 			}
 			bool insert_flag = true;
-			for(long offset = (i-1)*record_size; 
-				offset >= begin_offset && insert_flag; 
+			for(long offset = last_offset - record_size; 
+				(offset >= begin_offset) && insert_flag; 
 				offset -= record_size){
+				if(fseek(file, offset, SEEK_SET) == -1)
+					goto lib_io_error;
 				record = calloc(record_size, sizeof(char));
 				if(fread(record, sizeof(char), record_size, file) != record_size){
 					goto lib_io_error;
-				}if(compare_records(cur_record, record) < 1){
+				}
+				if(compare_records(cur_record, record) < 1){
 					/* case, when current record <= record in sorted fragment
 						moving record from sorted fragment
 					*/
-					if(fseek(file, record_size, SEEK_CUR) == -1){
-						goto lib_io_error;
-					}
+					// if(fseek(file, record_size, SEEK_CUR) == -1){		
+						// What if fread() moves the record ??
+					// 	goto lib_io_error;
+					// }
 					if(fwrite(record, sizeof(char), record_size, file) 
 						!= record_size){
 						goto lib_io_error;
 					}
 					if(offset == begin_offset){
-						if(fseek(file, record_size, SEEK_CUR) == -1){
-							goto lib_io_error;
-						}
+						 if(fseek(file, offset, SEEK_SET) == -1){
+						 	goto lib_io_error;
+						 }
 						if(fwrite(cur_record, sizeof(char), record_size, file) 
 							!= record_size){
 							goto lib_io_error;
 						}
 					}
 				}else{
-					if(fseek(file, record_size, SEEK_CUR) == -1){
-						goto lib_io_error;
-					}
+					// if(fseek(file, record_size, SEEK_CUR) == -1){
+					// 	goto lib_io_error;
+					// }
 					if(fwrite(cur_record, sizeof(char), record_size, file) 
 						!= record_size){
 						goto lib_io_error;
@@ -231,7 +225,7 @@ int sys_sort(const char* pathname, long record_size){
 		}
 		off_t file_size = end_offset - begin_offset;
 		long records_count = file_size / record_size;
-		if(file_size % record_size == 0){
+		if(file_size % record_size != 0){
 			perror("Wrong size of file... Not integer count of records");
 		}
 		for(long i = 1; i < records_count; i++){
@@ -245,9 +239,12 @@ int sys_sort(const char* pathname, long record_size){
 				goto sys_io_error;
 			}
 			bool insert_flag = true;
-			for(long offset = (i-1)*record_size + begin_offset; 
+			for(long offset = last_offset - record_size; 
 				offset >= begin_offset && insert_flag; 
 				offset -= record_size){
+				if(lseek(file, offset, SEEK_SET) == -1){
+					goto sys_io_error;
+				}
 				record = calloc(record_size, sizeof(char));
 				if(read(file, record, record_size*sizeof(char)) != record_size*sizeof(char)){
 					goto sys_io_error;
@@ -255,25 +252,30 @@ int sys_sort(const char* pathname, long record_size){
 					/* case, when current record <= record in sorted fragment
 						moving record from sorted fragment
 					*/
+			/*		
 					if(lseek(file, record_size, SEEK_CUR) == -1){
 						goto sys_io_error;
 					}
+			*/
 					if(write(file, record, record_size*sizeof(char)) != record_size*sizeof(char)){
 						goto sys_io_error;
 					}
 					if(offset == begin_offset){
-						if(lseek(file, record_size, SEEK_CUR) == -1){
+						if(lseek(file, offset, SEEK_SET) == -1){
 							goto sys_io_error;
 						}
+
 						if(write(file, cur_record, record_size*sizeof(char)) 
 							!= record_size*sizeof(char)){
 							goto sys_io_error;
 						}
 					}
 				}else{
+				/*
 					if(lseek(file, record_size, SEEK_CUR) == -1){
 						goto sys_io_error;
 					}
+				*/
 					if(write(file, cur_record, record_size*sizeof(char)) 
 						!= record_size*sizeof(char)){
 						goto sys_io_error;
