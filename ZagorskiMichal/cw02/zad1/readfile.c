@@ -5,6 +5,7 @@
 */
 #include <stdio.h>
 #include <sys/time.h>
+#include <sys/times.h>
 #include <sys/resource.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -13,11 +14,13 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
+#define RES_FILE "wyniki.txt"
 
-	
 int compare_records(char* rec1, char* rec2);
+int lib_sort(const char* pathname, long record_size);
+int sys_sort(const char* pathname, long record_size);
 
-void insertion_sort(char* filename, int rec_size, char type);
 
 
 
@@ -26,38 +29,69 @@ void insertion_sort(char* filename, int rec_size, char type);
 
 
 int main(int argc, char** argv){
+	if(argc != 4){
+	  	printf("Wrong number of arguments\n");
+	  	return 0;
+	}
+	
+	printf("Args:\n- Filename: %s\n- Record's size: %s\n- Type: %s\n", argv[1], argv[2], argv[3]);
+	
+	long record_size = atol(argv[2]);
+	char* lib = "lib";
+	char* sys = "sys";
+	struct rusage mz_time;
+	
+	clock_t begin_time = clock();
+	if(getrusage(RUSAGE_SELF, &mz_time) == -1){
+		goto error;
+	}
+	double begin_time_sys = 
+		((double)mz_time.ru_stime.tv_sec * 1000.0 )
+		+ ((double)mz_time.ru_stime.tv_usec / 1000.0);
+	
+	double begin_time_user = 
+			((double)mz_time.ru_utime.tv_sec * 1000.0 )
+		+ ((double)mz_time.ru_utime.tv_usec / 1000.0);
+	
+	if(strncmp(lib, argv[3], 3) == 0){
+		if(lib_sort(argv[1], record_size) != 0)
+			goto error;
+	}else if(strncmp(sys, argv[3], 3) == 0){
+		if(sys_sort(argv[1], record_size) != 0)
+			goto error;
+	}
 
+	clock_t end_time = clock();
+	if(getrusage(RUSAGE_SELF, &mz_time) == -1){
+		goto error;
+	}
+	
+	double end_time_sys = 
+		((double)mz_time.ru_stime.tv_sec * 1000.0 )
+		+ ((double)mz_time.ru_stime.tv_usec / 1000.0);
+	
+	double end_time_user = 
+			((double)mz_time.ru_utime.tv_sec * 1000.0 )
+		+ ((double)mz_time.ru_utime.tv_usec / 1000.0);
+	
+	double real_time = (double)(end_time - begin_time) / ((double) CLOCKS_PER_SEC / 1000.0);
+	double user_time = end_time_user - begin_time_user;
+	double sys_time = end_time_sys - begin_time_sys;
+
+	FILE* results = fopen(RES_FILE, "a+");
+	if(results == NULL)
+		goto error;
+	fprintf(results, "\n\n-------------------------------------------------------------------------\n-------------------------------------------------------------------------\n");
+	fprintf(results, "Args:\n- Filename: %s\n- Record's size: %s\n- Type: %s\n", argv[1], argv[2], argv[3]);
+	fprintf(results, "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+	fprintf(results, "Times: \n-real: %lf ms\n- user: %lf ms\n- sys: %lf ms\n", real_time, user_time, sys_time);
+	fprintf(results, "-------------------------------------------------------------------------\n");
+	fclose(results);
 	return 0;
+	error:
+		perror("Error: ");
+		exit(1);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -99,7 +133,7 @@ int lib_sort(const char* pathname, long record_size){
 				goto lib_io_error;
 			}//			if(last_offset < end_offset){
 			cur_record = calloc(record_size, sizeof(char));
-			if(fread(cur_record, record_size, sizeof(char), file) != record_size*sizeof(char)){
+			if(fread(cur_record, sizeof(char), record_size, file) != record_size){
 				goto lib_io_error;
 			}
 			bool insert_flag = true;
@@ -107,7 +141,7 @@ int lib_sort(const char* pathname, long record_size){
 				offset >= begin_offset && insert_flag; 
 				offset -= record_size){
 				record = calloc(record_size, sizeof(char));
-				if(fread(record, record_size, sizeof(char), file) != record_size*sizeof(char)){
+				if(fread(record, sizeof(char), record_size, file) != record_size){
 					goto lib_io_error;
 				}if(compare_records(cur_record, record) < 1){
 					/* case, when current record <= record in sorted fragment
@@ -116,16 +150,16 @@ int lib_sort(const char* pathname, long record_size){
 					if(fseek(file, record_size, SEEK_CUR) == -1){
 						goto lib_io_error;
 					}
-					if(fwrite(record, record_size, sizeof(char), file) 
-						!= record_size*sizeof(char)){
+					if(fwrite(record, sizeof(char), record_size, file) 
+						!= record_size){
 						goto lib_io_error;
 					}
 					if(offset == begin_offset){
 						if(fseek(file, record_size, SEEK_CUR) == -1){
 							goto lib_io_error;
 						}
-						if(fwrite(cur_record, record_size, sizeof(char), file) 
-							!= record_size*sizeof(char)){
+						if(fwrite(cur_record, sizeof(char), record_size, file) 
+							!= record_size){
 							goto lib_io_error;
 						}
 					}
@@ -133,8 +167,8 @@ int lib_sort(const char* pathname, long record_size){
 					if(fseek(file, record_size, SEEK_CUR) == -1){
 						goto lib_io_error;
 					}
-					if(fwrite(cur_record, record_size, sizeof(char), file) 
-						!= record_size*sizeof(char)){
+					if(fwrite(cur_record, sizeof(char), record_size, file) 
+						!= record_size){
 						goto lib_io_error;
 					}
 					insert_flag = false;
