@@ -1,3 +1,10 @@
+/*
+	Michał Zagórski
+	Systemy operacyjne 2015/2016
+	Zestaw 2 - zadanie 2
+	13 marca 2016
+*/
+
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,7 +16,6 @@
 #include <stdlib.h>
 #include <features.h>
 
-//#define _DEFAULT_SOURCE 1
 #define _POSIX_C_SOURCE 200809L
 #define _XOPEN_SOURCE 500
 
@@ -55,7 +61,7 @@ void checkfile(dirent_t* dirent, const char* rights, const char* path){
 			if(check_rights(&buf, rights) == 1){
 				off_t size = buf.st_size;
 				time_t access = buf.st_atime;
-				printf("- Name: %s\n- Size: %lu\n- Last access: %s\n\n", path, size, ctime(&access));
+				printf("- Name: %s\n- Size: %lu B\n- Last access: %s\n\n", path, size, ctime(&access));
 			}
 		}
 	}
@@ -83,25 +89,7 @@ void search_dir(const char* rights, const char* path){
 		path2 = strcat(path2, "/");
 		if(strncmp(file_dirent->d_name, "..", 4) && strncmp(file_dirent->d_name, ".", 3)){
 			path2 = strcat(path2, file_dirent->d_name);
-			// if(file_dirent->d_type == DT_DIR){
-			// 	errno = 0;
-			// 	DIR* insidedir = opendir(path2);
-			// 	if(insidedir == NULL){
-			// 		if(errno == EACCES){
-			// 			perror(path2);
-			// 		}
-			// 		else goto search_error;
-			// 	}else{
-			// 		search_dir(insidedir, rights, path2);
-			// 	}
-			// 	if(insidedir != NULL){
-			// 		if(closedir(insidedir) == 0)
-			// 			goto search_error;
-			// 	}
-			// }
-			// else if(file_dirent->d_type == DT_REG){
-				checkfile(file_dirent, rights, path2);
-		//	}
+			checkfile(file_dirent, rights, path2);
 		}
 		file_dirent = readdir(root);
 	}
@@ -114,8 +102,5 @@ void search_dir(const char* rights, const char* path){
 		}
 		root = NULL;
 	}
-	// search_error:
-	// 	perror("Error:");
-	// 	errno = 0;
 }
 
