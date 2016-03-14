@@ -1,0 +1,428 @@
+RECORD_size: 4
+Count : 20
+4
+Args: ./files/f_4_20 | 4 | 20
+Creating file ./files/f_4_20 with 20 records of size 4
+  type: lib
+Differnce 
+File parameters ./files/f 4  lib
+Args:
+- Filename: ./files/f_4_20_lib
+- Record's size: 4
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_20 i ./files/f_4_20_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4  sys
+Args:
+- Filename: ./files/f_4_20_sys
+- Record's size: 4
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_20 i ./files/f_4_20_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 100
+4
+Args: ./files/f_4_100 | 4 | 100
+Creating file ./files/f_4_100 with 100 records of size 4
+  type: lib
+Differnce 
+File parameters ./files/f 4  lib
+Args:
+- Filename: ./files/f_4_100_lib
+- Record's size: 4
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_100 i ./files/f_4_100_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4  sys
+Args:
+- Filename: ./files/f_4_100_sys
+- Record's size: 4
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_100 i ./files/f_4_100_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 500
+4
+Args: ./files/f_4_500 | 4 | 500
+Creating file ./files/f_4_500 with 500 records of size 4
+  type: lib
+Differnce 
+File parameters ./files/f 4  lib
+Args:
+- Filename: ./files/f_4_500_lib
+- Record's size: 4
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_500 i ./files/f_4_500_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4  sys
+Args:
+- Filename: ./files/f_4_500_sys
+- Record's size: 4
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_500 i ./files/f_4_500_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 1000
+4
+Args: ./files/f_4_1000 | 4 | 1000
+Creating file ./files/f_4_1000 with 1000 records of size 4
+  type: lib
+Differnce 
+File parameters ./files/f 4  lib
+Args:
+- Filename: ./files/f_4_1000_lib
+- Record's size: 4
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_1000 i ./files/f_4_1000_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4  sys
+Args:
+- Filename: ./files/f_4_1000_sys
+- Record's size: 4
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4_1000 i ./files/f_4_1000_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+==============================================
+==============================================
+RECORD_size: 512
+Count : 20
+4
+Args: ./files/f_512_20 | 512 | 20
+Creating file ./files/f_512_20 with 20 records of size 512
+  type: lib
+Differnce 
+File parameters ./files/f 512  lib
+Args:
+- Filename: ./files/f_512_20_lib
+- Record's size: 512
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_20 i ./files/f_512_20_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 512  sys
+Args:
+- Filename: ./files/f_512_20_sys
+- Record's size: 512
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_20 i ./files/f_512_20_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 100
+4
+Args: ./files/f_512_100 | 512 | 100
+Creating file ./files/f_512_100 with 100 records of size 512
+  type: lib
+Differnce 
+File parameters ./files/f 512  lib
+Args:
+- Filename: ./files/f_512_100_lib
+- Record's size: 512
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_100 i ./files/f_512_100_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 512  sys
+Args:
+- Filename: ./files/f_512_100_sys
+- Record's size: 512
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_100 i ./files/f_512_100_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 500
+4
+Args: ./files/f_512_500 | 512 | 500
+Creating file ./files/f_512_500 with 500 records of size 512
+  type: lib
+Differnce 
+File parameters ./files/f 512  lib
+Args:
+- Filename: ./files/f_512_500_lib
+- Record's size: 512
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_500 i ./files/f_512_500_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 512  sys
+Args:
+- Filename: ./files/f_512_500_sys
+- Record's size: 512
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_500 i ./files/f_512_500_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 1000
+4
+Args: ./files/f_512_1000 | 512 | 1000
+Creating file ./files/f_512_1000 with 1000 records of size 512
+  type: lib
+Differnce 
+File parameters ./files/f 512  lib
+Args:
+- Filename: ./files/f_512_1000_lib
+- Record's size: 512
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_1000 i ./files/f_512_1000_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 512  sys
+Args:
+- Filename: ./files/f_512_1000_sys
+- Record's size: 512
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_512_1000 i ./files/f_512_1000_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+==============================================
+==============================================
+RECORD_size: 4096
+Count : 20
+4
+Args: ./files/f_4096_20 | 4096 | 20
+Creating file ./files/f_4096_20 with 20 records of size 4096
+  type: lib
+Differnce 
+File parameters ./files/f 4096  lib
+Args:
+- Filename: ./files/f_4096_20_lib
+- Record's size: 4096
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_20 i ./files/f_4096_20_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4096  sys
+Args:
+- Filename: ./files/f_4096_20_sys
+- Record's size: 4096
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_20 i ./files/f_4096_20_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 100
+4
+Args: ./files/f_4096_100 | 4096 | 100
+Creating file ./files/f_4096_100 with 100 records of size 4096
+  type: lib
+Differnce 
+File parameters ./files/f 4096  lib
+Args:
+- Filename: ./files/f_4096_100_lib
+- Record's size: 4096
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_100 i ./files/f_4096_100_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4096  sys
+Args:
+- Filename: ./files/f_4096_100_sys
+- Record's size: 4096
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_100 i ./files/f_4096_100_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 500
+4
+Args: ./files/f_4096_500 | 4096 | 500
+Creating file ./files/f_4096_500 with 500 records of size 4096
+  type: lib
+Differnce 
+File parameters ./files/f 4096  lib
+Args:
+- Filename: ./files/f_4096_500_lib
+- Record's size: 4096
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_500 i ./files/f_4096_500_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4096  sys
+Args:
+- Filename: ./files/f_4096_500_sys
+- Record's size: 4096
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_500 i ./files/f_4096_500_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 1000
+4
+Args: ./files/f_4096_1000 | 4096 | 1000
+Creating file ./files/f_4096_1000 with 1000 records of size 4096
+  type: lib
+Differnce 
+File parameters ./files/f 4096  lib
+Args:
+- Filename: ./files/f_4096_1000_lib
+- Record's size: 4096
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_1000 i ./files/f_4096_1000_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 4096  sys
+Args:
+- Filename: ./files/f_4096_1000_sys
+- Record's size: 4096
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_4096_1000 i ./files/f_4096_1000_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+==============================================
+==============================================
+RECORD_size: 8192
+Count : 20
+4
+Args: ./files/f_8192_20 | 8192 | 20
+Creating file ./files/f_8192_20 with 20 records of size 8192
+  type: lib
+Differnce 
+File parameters ./files/f 8192  lib
+Args:
+- Filename: ./files/f_8192_20_lib
+- Record's size: 8192
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_20 i ./files/f_8192_20_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 8192  sys
+Args:
+- Filename: ./files/f_8192_20_sys
+- Record's size: 8192
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_20 i ./files/f_8192_20_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 100
+4
+Args: ./files/f_8192_100 | 8192 | 100
+Creating file ./files/f_8192_100 with 100 records of size 8192
+  type: lib
+Differnce 
+File parameters ./files/f 8192  lib
+Args:
+- Filename: ./files/f_8192_100_lib
+- Record's size: 8192
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_100 i ./files/f_8192_100_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 8192  sys
+Args:
+- Filename: ./files/f_8192_100_sys
+- Record's size: 8192
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_100 i ./files/f_8192_100_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 500
+4
+Args: ./files/f_8192_500 | 8192 | 500
+Creating file ./files/f_8192_500 with 500 records of size 8192
+  type: lib
+Differnce 
+File parameters ./files/f 8192  lib
+Args:
+- Filename: ./files/f_8192_500_lib
+- Record's size: 8192
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_500 i ./files/f_8192_500_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 8192  sys
+Args:
+- Filename: ./files/f_8192_500_sys
+- Record's size: 8192
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_500 i ./files/f_8192_500_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Count : 1000
+4
+Args: ./files/f_8192_1000 | 8192 | 1000
+Creating file ./files/f_8192_1000 with 1000 records of size 8192
+  type: lib
+Differnce 
+File parameters ./files/f 8192  lib
+Args:
+- Filename: ./files/f_8192_1000_lib
+- Record's size: 8192
+- Type: lib
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_1000 i ./files/f_8192_1000_lib różnią się
+---------------------------------------------------
+  type: sys
+Differnce 
+File parameters ./files/f 8192  sys
+Args:
+- Filename: ./files/f_8192_1000_sys
+- Record's size: 8192
+- Type: sys
+EXECUTING...
+Differnce Binarne pliki ./files/f_8192_1000 i ./files/f_8192_1000_sys różnią się
+---------------------------------------------------
+Differnce 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+==============================================
+==============================================
