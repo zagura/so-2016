@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-Wall -pedantic -std=c99
 DIR =.
-EXEC=dir.exe
-OBJS=dir.o
-SRCS=dir.c
+EXEC=dir.exe dir_root.exe
+OBJS=dir.o dir_root.exe
+SRCS=dir.c dir_root.exe
 CFLAGS += -g
 all: clean $(EXEC)
 	@echo "Build finished succesfully"
