@@ -4,13 +4,13 @@ DIR =.
 EXEC=dir.exe dir_root.exe
 OBJS=dir.o dir_root.exe
 SRCS=dir.c dir_root.exe
-CFLAGS += -g
-all: clean $(EXEC)
-	@echo "Build finished succesfully"
+CFLAGS += -O0
+all: compile
+#@echo "Build finished succesfully"
 
-run: $(EXEC)
-	@echo "Running generator and test programs"
-	./run.sh > readfile.log
+# run: $(EXEC)
+# 	@echo "Running generator and test programs"
+# 	./run.sh > readfile.log
 
 compile: $(EXEC)
 	
