@@ -4,9 +4,9 @@ EXEC =readfile.exe generator.exe
 OBJ =readfile.o generator.o
 SRC =readfile.c generator.c
 FILE =file
-CFLAGS += -O3
-all: clean $(EXEC)
-	@echo "Build finished succesfully"
+CFLAGS += -O0
+all: compile
+#@echo "Build finished succesfully"
 
 run: $(EXEC)
 	@echo "Running generator and test programs"
