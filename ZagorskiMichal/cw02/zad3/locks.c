@@ -134,6 +134,7 @@ void read_locks(int fd){
 	off_t end = lseek(fd, 0L, SEEK_END);
 	off_t off = lseek(fd, 0L, SEEK_SET);
 	struct flock lock;
+	lock.l_type = F_WRLCK;
 	lock.l_len = 1;
 	lock.l_pid = getpid();
 	lock.l_whence = SEEK_SET;
@@ -181,7 +182,7 @@ void free_lock(int fd, int offset){
 
 void read_char(int fd, int offset){
 	struct flock check_lock;
-	check_lock.l_type = F_UNLCK;
+	check_lock.l_type = F_WRLCK;
 	check_lock.l_whence = SEEK_SET;
 	off_t off = lseek(fd, offset, SEEK_SET);
 	if(off == -1){
@@ -209,7 +210,7 @@ void read_char(int fd, int offset){
 
 void write_char(int fd, int offset){
 	struct flock check_lock;
-	check_lock.l_type = F_UNLCK;
+	check_lock.l_type = F_WRLCK;
 	check_lock.l_whence = SEEK_SET;
 	off_t off = lseek(fd, offset, SEEK_SET);
 	if(off == -1){
