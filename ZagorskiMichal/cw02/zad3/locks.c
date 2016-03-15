@@ -16,7 +16,7 @@ struct node{
 typedef struct node node_t;
 node_t* lock_list;
 
-int run(char operator, int fd, short* flag);
+int run(char operator, int fd, short* flag, off_t max_offset);
 
 void close_prog(int file_desc){
 	while(lock_list != NULL){
@@ -53,10 +53,11 @@ int main(int argc, char** argv){
 	print_menu();
 	char operator = getchar();
 	int fd = open(file, O_RDWR);
+	off_t max_offset = lseek(fd, 0L, SEEK_END);
 	short flag = 1;
 
 	while(flag != 0){
-		if(run(operator, fd, &flag) == -1){
+		if(run(operator, fd, &flag, max_offset) == -1){
 			perror(file);
 			close_prog(fd);
 		}
@@ -134,17 +135,25 @@ void read_locks(int fd){
 	off_t end = lseek(fd, 0L, SEEK_END);
 	off_t off = lseek(fd, 0L, SEEK_SET);
 	struct flock lock;
-	lock.l_type = F_WRLCK;
-	lock.l_len = 1;
-	lock.l_pid = getpid();
-	lock.l_whence = SEEK_SET;
+//	lock.l_type = F_WRLCK;
+//	lock.l_len = 1;
+//	lock.l_pid = getpid();
+//	lock.l_whence = SEEK_SET;
 	errno = 0;
 	if(off == -1 || end == -1) return;
 	while(off < end && off > -1){
+		//if(lseek(fd, off, SEEK_SET) == -1) return;
+		lock.l_whence = SEEK_SET;
 		lock.l_start = off;
-		if(fcntl(fd, F_GETLK, &lock) == -1) return;
+		lock.l_len = 1;
+		lock.l_type = F_WRLCK;
+		if(fcntl(fd, F_GETLK, &lock) == -1) {
+			perror(NULL);
+			errno = 0; //return;
+		}
 		print_lock(lock);
-		off = lseek(fd, off+1, SEEK_SET);
+		//off = lseek(fd, off+1, SEEK_SET);
+		off++;
 	}
 	node_t* list = lock_list;
 	printf("Locks owned by this process\n");
@@ -176,7 +185,7 @@ void free_lock(int fd, int offset){
 		}
 		list = list->next;
 	}
-	printf("Successfully freed the lock on %ld", off);
+	printf("Successfully freed the lock on %ld\n", off);
 
 }
 
@@ -188,7 +197,7 @@ void read_char(int fd, int offset){
 	if(off == -1){
 		return;
 	}
-	check_lock.l_start = off;
+	check_lock.l_start = offset;
 	off_t len = 1;
 	check_lock.l_len = len;
 	check_lock.l_pid = getpid();
@@ -239,7 +248,7 @@ void write_char(int fd, int offset){
 	}
 }
 
-int run(char operator, int fd, short* flag){
+int run(char operator, int fd, short* flag,  off_t max_offset){
 	int offset = 0;
 	switch(operator){
 		case '1': case '2': case '4': case '5': case '6':
@@ -249,6 +258,10 @@ int run(char operator, int fd, short* flag){
 			getchar();			//Empty newline
 		default:
 			break;
+	}
+	if(offset > max_offset){
+		fprintf(stderr, "Offset outside the file");
+		return 0;
 	}
 	switch (operator){
 		case '1':
