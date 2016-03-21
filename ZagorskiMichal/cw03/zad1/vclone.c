@@ -32,7 +32,7 @@ typedef struct mz_time mz_time_t;
 void print(mz_time_t* val){
    // printf("\n");
    // printf(" - sys: %0.9lf ms \n - user: %0.9lf ms\n - real: %lf ms\n", val->sys, val->user, val->real);
-    printf("%0.9lf;%0.9lf;%0.9lf", val->sys, val->user, val->real);
+    printf("%0.9lf;%0.9lf;%0.9lf;", val->sys, val->user, val->real);
 }
 
 static int child_fun(void* args){
@@ -120,7 +120,7 @@ int main(int argc, char** argv){
     end_time.real = end_time.real - begin.real;
     end_time.user = end_time.user - begin.user;
     end_time.sys = end_time.sys - begin.sys;
-    printf("\n;CLONE (vfork);%d;", N);
+    printf("\nCLONE (vfork);%d;", N);
     //printf("--------------------------------------\n");
     print(&children);
     print(&end_time);

@@ -28,7 +28,7 @@ typedef struct mz_time mz_time_t;
 void print(mz_time_t* val){
    // printf("\n");
    // printf(" - sys: %0.9lf ms \n - user: %0.9lf ms\n - real: %lf ms\n", val->sys, val->user, val->real);
-    printf("%0.9lf;%0.9lf;%0.9lf", val->sys, val->user, val->real);
+    printf("%0.9lf;%0.9lf;%0.9lf;", val->sys, val->user, val->real);
 }
 
 
