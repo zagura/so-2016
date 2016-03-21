@@ -21,8 +21,9 @@ int loop = 0;
 typedef struct mz_time mz_time_t;
 
 void print(mz_time_t* val){
-    printf("\n");
-    printf(" - sys: %0.9lf ms \n - user: %0.9lf ms\n - real: %lf ms\n", val->sys, val->user, val->real);
+   // printf("\n");
+   // printf(" - sys: %0.9lf ms \n - user: %0.9lf ms\n - real: %lf ms\n", val->sys, val->user, val->real);
+    printf("%0.9lf;%0.9lf;%0.9lf", val->sys, val->user, val->real);
 }
 
 void child_inc();
@@ -98,12 +99,12 @@ int main(int argc, char** argv){
                 + ((double)parent.ru_utime.tv_usec) / 1000.0;
     end_time.sys = ((double)parent.ru_stime.tv_sec ) * 1000.0
                 + ((double)parent.ru_stime.tv_usec) / 1000.0;
-    printf("Loop value: %d\n", loop);
+    fprintf(stderr, "Loop value: %d\n", loop);
     end_time.real = end_time.real - begin.real;
     end_time.user = end_time.user - begin.user;
     end_time.sys = end_time.sys - begin.sys;
-    printf("\nVFORK: %d\n", N);
-    printf("--------------------------------------\n");
+    printf("\nVFORK;%d;", N);
+//    printf("--------------------------------------\n");
     print(&children);
     print(&end_time);
     return 0;

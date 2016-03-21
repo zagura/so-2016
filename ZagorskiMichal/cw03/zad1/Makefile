@@ -5,7 +5,7 @@ EXEC=fork vfork clone vclone
 OBJS=fork.o vfork.o clone.o vlone.o
 SRCS=fork.c vfork.c clone.c vclone.c
 CFLAGS += -g
-all: compile
+all: compile run
 #@echo "Build finished succesfully"
 
 # run: $(EXEC)
@@ -18,10 +18,12 @@ compile: $(EXEC)
 	$(CC) $(CFLAGS) $< -o $@
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-
+run: $(EXEC)
+	@./run.sh
 #.PHONY: clean all run
 .PHONY: all
 clean:
 	@echo "Cleaning project"
 	@rm -f $(EXEC)
 	@echo "Cleaning done"
+	@rm -f result.txt
