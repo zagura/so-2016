@@ -64,6 +64,7 @@ int main(int argc, char* argv[], char* envp[]){
 	errno = 0;
 	dirent_t* file_dirent = readdir(root);
 	struct stat file_data;
+	pid_t child_pid = 0;
 	while(file_dirent != NULL){
 		char newpath[1024];
 		char* path2 = NULL;
@@ -76,9 +77,18 @@ int main(int argc, char* argv[], char* envp[]){
 				perror("Line 68");
 			}
 			if(S_ISDIR(file_data.st_mode)){
-				if(setenv("PATH_TO_BROWSE", path2, 1) == -1 ||
-					execve(program, argv, envp) == -1){
-					perror("exec");
+				children++;
+				child_pid = fork();
+				if(child_pid == 0){
+					if(setenv("PATH_TO_BROWSE", path2, 1) == -1 ||
+						execve(program, argv, envp) == -1){
+						perror("exec");
+					}
+				children = 0;
+				}
+				if(child_pid == -1){
+					perror(NULL);
+					errno = 0;
 				}
 			}else{
 				if(extention != NULL){
@@ -93,8 +103,6 @@ int main(int argc, char* argv[], char* envp[]){
 			}
 		}
 		file_dirent = readdir(root);
-		perror("Line 94");
-		perror(file_dirent->d_name);
 	}
 	if(file_dirent == NULL && errno != 0){
 		perror(path);
@@ -106,22 +114,28 @@ int main(int argc, char* argv[], char* envp[]){
 		root = NULL;
 	}
 	int files_add = 0;
-	int my_files = files;
+	int all_files = files;
 if(flag & 2){
+	fprintf(stderr, "Sleep\n");
 	sleep(15);
 }
-	for(int i = 0; i <children; i++){
+if(child_pid > 0){
+	for(int i = 0; i < children; i++){
+		files_add = 0;
 		if(wait(&files_add) == -1){
 			perror(NULL);
 		}
 		errno = 0;
-		if(files_add > 0) files += files_add;
+		if(files_add > 0) {
+			all_files += files_add>>8;
+		}		
 	}
+}
 if(flag & 4){
 	printf("\nPath: %s", path);
-	printf("\nFiles in this directory: %d\n", my_files);
+	printf("\nFiles in this directory: %d\n", files);
 }
-	printf("All files in direcories with root in . : %d\n", files);
-	exit(files);
+	printf("All files in direcories with root in %s : %d\n", path, all_files);
+	exit(all_files);
 	return 0;
 }
