@@ -13,7 +13,7 @@
 #include <time.h>
 #include <sched.h>
 #include <string.h>
-
+#include <sys/mman.h>
  
 #define STACK_SIZE (32*1024)
 struct mz_time{
@@ -46,11 +46,13 @@ int main(int argc, char** argv){
     if(argc != 2){
         perror("Wrong number of arguments");
     }
-    char* stack = (char*)malloc(STACK_SIZE);
-    if(stack == NULL){
-        perror("Alocating stack");
+   // unsigned char* stack = (char*)malloc(STACK_SIZE);
+	unsigned char* stack = NULL;
+	stack = mmap(NULL, STACK_SIZE, PROT_READ | PROT_WRITE, MAP_STACK | MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+    if(stack == MAP_FAILED){
+        perror("mmap");
     }
-    char* stack_top = stack + STACK_SIZE;
+    unsigned char* stack_top = stack + STACK_SIZE - 1;
     int N = atoi(argv[1]);
     struct rusage parent;
     struct rusage child;
@@ -83,7 +85,7 @@ int main(int argc, char** argv){
         s_child.sys = ((double) parent.ru_stime.tv_sec ) * 1000.0
                     + ((double) child.ru_stime.tv_usec) / 1000.0;
                 // Wait until finish the process
-        pid_t pid = clone(child_fun,  stack_top, CLONE_VFORK, NULL);
+        pid_t pid = clone(child_fun,  stack_top, CLONE_VM | SIGCHLD | CLONE_VFORK, NULL);
         if(pid == -1){
             perror(NULL);
         }
@@ -95,6 +97,7 @@ int main(int argc, char** argv){
             if(getrusage(RUSAGE_CHILDREN, &child) == -1){
                 perror(NULL);
             }
+		child_real >>= 8;
             s_child.real = (double)child_real / ((double) CLOCKS_PER_SEC / 1000.0) - s_child.real;
             s_child.user = ((double) child.ru_utime.tv_sec ) * 1000.0
                         + ((double) child.ru_utime.tv_usec) / 1000.0 - s_child.user;
@@ -118,12 +121,15 @@ int main(int argc, char** argv){
                 + ((double)parent.ru_stime.tv_usec) / 1000.0;
     fprintf(stderr, "Loop value: %d\n", loop);
     end_time.real = end_time.real - begin.real;
+//	end_time.real -= children.real;
     end_time.user = end_time.user - begin.user;
+	//end_time.user -= children.user;
     end_time.sys = end_time.sys - begin.sys;
+	//end_time.sys -= children.sys;
     printf("\nCLONE (vfork);%d;", N);
     //printf("--------------------------------------\n");
     print(&children);
     print(&end_time);
-    free(stack);
+	munmap(stack, STACK_SIZE);
     return 0;
 }

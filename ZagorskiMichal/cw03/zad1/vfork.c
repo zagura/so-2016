@@ -1,3 +1,6 @@
+#define _XOPEN_SOURCE 500
+#define _POSIX_C_SOURCE 199309L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -8,8 +11,7 @@
 #include <errno.h>
 #include <time.h>
 
-#define _XOPEN_SOURCE 500
-#define _POSIX_C_SOURCE 199309L
+
 
 struct mz_time{
     double user;
@@ -63,7 +65,7 @@ int main(int argc, char** argv){
         s_child.sys = ((double) parent.ru_stime.tv_sec ) * 1000.0
                     + ((double) child.ru_stime.tv_usec) / 1000.0;
                 // Wait until finish the process
-        pid_t pid = fork();
+        pid_t pid = vfork();
         if(pid == -1){
             perror(NULL);
         }
@@ -78,6 +80,7 @@ int main(int argc, char** argv){
             if(getrusage(RUSAGE_CHILDREN, &child) == -1){
                 perror(NULL);
             }
+	    child_real >>= 8;
             s_child.real = (double)child_real / ((double) CLOCKS_PER_SEC / 1000.0) - s_child.real;
             s_child.user = ((double) child.ru_utime.tv_sec ) * 1000.0
                         + ((double) child.ru_utime.tv_usec) / 1000.0 - s_child.user;
@@ -101,8 +104,11 @@ int main(int argc, char** argv){
                 + ((double)parent.ru_stime.tv_usec) / 1000.0;
     fprintf(stderr, "Loop value: %d\n", loop);
     end_time.real = end_time.real - begin.real;
+//	end_time.real -= children.real;
     end_time.user = end_time.user - begin.user;
+	//end_time.user -= children.user;
     end_time.sys = end_time.sys - begin.sys;
+	//end_time.sys -= children.sys;
     printf("\nVFORK;%d;", N);
 //    printf("--------------------------------------\n");
     print(&children);

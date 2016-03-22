@@ -17,8 +17,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#define STACK_SIZE (1024*32)
-
 typedef struct dirent dirent_t;
 
 
@@ -48,11 +46,6 @@ int main(int argc, char* argv[], char* envp[]){
 		exit(0);
 	}
 	errno = 0;
-/*	char* stack = (char*)malloc(STACK_SIZE);
-	if(stack == NULL){
-		perror(path);
-	}
-	char* top_stack = stack + STACK_SIZE;*/
 	int files = 0;
 	int children = 0;
 	DIR* root = opendir(path);
@@ -64,7 +57,6 @@ int main(int argc, char* argv[], char* envp[]){
 	errno = 0;
 	dirent_t* file_dirent = readdir(root);
 	struct stat file_data;
-	pid_t child_pid = 0;
 	while(file_dirent != NULL){
 		char newpath[1024];
 		char* path2 = NULL;
@@ -77,18 +69,17 @@ int main(int argc, char* argv[], char* envp[]){
 				perror("Line 68");
 			}
 			if(S_ISDIR(file_data.st_mode)){
-				children++;
-				child_pid = fork();
+				pid_t child_pid = fork();
 				if(child_pid == 0){
+					children = 0;
+					files = 0;
 					if(setenv("PATH_TO_BROWSE", path2, 1) == -1 ||
 						execve(program, argv, envp) == -1){
 						perror("exec");
 					}
-				children = 0;
 				}
-				if(child_pid == -1){
-					perror(NULL);
-					errno = 0;
+				if(child_pid > 0){
+					children++;
 				}
 			}else{
 				if(extention != NULL){
@@ -114,28 +105,22 @@ int main(int argc, char* argv[], char* envp[]){
 		root = NULL;
 	}
 	int files_add = 0;
-	int all_files = files;
-if(flag & 2){
-	fprintf(stderr, "Sleep\n");
-	sleep(15);
-}
-if(child_pid > 0){
-	for(int i = 0; i < children; i++){
-		files_add = 0;
+	int my_files = files;
+	for(int i = 0; i <children; i++){
 		if(wait(&files_add) == -1){
 			perror(NULL);
 		}
 		errno = 0;
-		if(files_add > 0) {
-			all_files += files_add>>8;
-		}		
+		if(files_add > 0) files += files_add>>8;
 	}
+if(flag & 2){
+	sleep(3);
 }
 if(flag & 4){
 	printf("\nPath: %s", path);
-	printf("\nFiles in this directory: %d\n", files);
+	printf("\nFiles in this directory: %d\n", my_files);
 }
-	printf("All files in direcories with root in %s : %d\n", path, all_files);
-	exit(all_files);
+	printf("All files in direcories with root in %s : %d\n", path, files);
+	exit(files);
 	return 0;
 }
