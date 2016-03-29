@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 static int counter = 0, repetitions = 1, modifier = -1, max_num = -1;
 static char* str = NULL;
