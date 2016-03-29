@@ -29,11 +29,34 @@ int main(int argc, char** argv){
 		fprintf(stderr, "To low number in parameter\n");
 		return EXIT_FAILURE;
 	}
+	sigset_t set, old;
+	int signal_error = 0;
+	//signal_error += sigemptyset(&old);
+	//signal_error += sigfillset(&set);
+	signal_error += sigfillset(&set);
+	//signal_error += sigdelset(&set, SIGUSR2);
+	signal_error += sigdelset(&set, SIGUSR1);
+	signal_error += sigprocmask(SIG_BLOCK, &set, &old);
+	if(signal_error < 0){
+		perror("SIGMASK:\n");
+		return EXIT_FAILURE;
+	}
 	char catcher[] = "./catcher";
 	int send_counter = sends;
 	char arg[10];
 	fprintf(stderr, "Forking\n");
 	pid_t pid = fork();
+	sigset_t suspend;
+	sigfillset(&suspend);
+	sigdelset(&suspend, SIGUSR1);
+	sigdelset(&suspend, SIGUSR2);
+	struct sigaction act;
+	act.sa_handler = count;
+	act.sa_mask = set;
+	act.sa_flags = 0;
+	struct sigaction old_act;
+	sigaction(SIGUSR1, &act, &old_act);
+	signal(SIGUSR2, &printer);
 	if(pid == 0){
 		//execlp(catcher, "catcher", (char*)NULL);
 		fprintf(stderr, "Child process\n");
@@ -47,26 +70,27 @@ int main(int argc, char** argv){
 	}
 	if(pid > 0){
 		fprintf(stderr, "Parent proces\n");
-		sleep(2);
+		sleep(1);
 		while(send_counter--){
 			kill(pid, SIGUSR1);
-			sleep(1);
 		}
-		signal(SIGUSR2, &printer);
-		signal(SIGUSR1, &count);
+		kill(pid, SIGUSR2);
+
 		int status = 0;
+		while(usr2){
+			sigsuspend(&suspend);
+		//	pause();
+		}
+		printf("Received %d SIGUSR1 signals\n", counter);
+		printf("Signals send: %d\n", sends);
 		fprintf(stderr, "Wating for child process\n");
-		if( wait(&status) != pid){
+		if( waitpid(pid, &status, 0) != pid){
 			perror("Wait:\n");
 		}
 		if(WIFSIGNALED(status)){
 			printf("Catcher exit by signal %d.\n", WTERMSIG(status));
+			return EXIT_FAILURE;
 		}
-		while(usr2){
-			pause();
-		}
-		printf("Received %d SIGUSR1 signals\n", counter);
-		printf("Signals send: %d\n", sends);
 	}
 	return 0;
 }
