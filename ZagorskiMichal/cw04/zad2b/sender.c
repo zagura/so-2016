@@ -13,7 +13,6 @@ int counter = 0;
 int usr2 = 1;
 void count(int signo){
 	counter++;
-	//fprintf(stderr, "Parent catched usr1: %d \n", counter);
 }
 
 void printer(int signo){
@@ -35,8 +34,6 @@ int main(int argc, char** argv){
 	sigset_t set, old;
 	int signal_error = 0;
 	signal_error += sigfillset(&set);
-	//signal_error += sigdelset(&set, SIGUSR2);
-	//signal_error += sigdelset(&set, SIGUSR1);
 	signal_error += sigprocmask(SIG_BLOCK, &set, &old);
 
 	if(signal_error < 0){
@@ -46,7 +43,6 @@ int main(int argc, char** argv){
 	char catcher[] = "./catcher";
 	int send_counter = sends;
 	char arg[10];
-	//fprintf(stderr, "Forking\n");
 
 	sigset_t suspend;
 	signal_error += sigfillset(&suspend);
@@ -73,10 +69,8 @@ int main(int argc, char** argv){
 	pid_t pid = fork();
 	
 	if(pid == 0){
-//		fprintf(stderr, "Child process\n");
 		sprintf(arg, "%d\n", getppid());
 		execlp(catcher, "catcher", arg, (char*)NULL);
-//		fprintf(stderr, "Finished catching\n");
 		_exit(0);
 	}
 
@@ -86,18 +80,11 @@ int main(int argc, char** argv){
 	}
 
 	if(pid > 0){
-//		fprintf(stderr, "Parent proces\n");
 		sleep(1);								//Wait for child process to call and begin exec function
-//		union sigval val;
-//		val.sival_int = SIGUSR1;
 		while(send_counter--){
-/*			if(sigqueue(pid, SIGUSR1, val) == -1){
-				perror("SENDER -- LINE 90\n");
-			}*/
 			if(kill(pid, SIGUSR1) == -1){
 				perror("KILL");
 			}
-		//	fprintf(stderr, "Parent send usr1: %d \n", counter);
 			sigsuspend(&suspend);
 			errno = 0;
 		}
@@ -113,7 +100,6 @@ int main(int argc, char** argv){
 
 		printf("Received %d SIGUSR1 signals\n", counter);
 		printf("Signals send: %d\n", sends);
-//		fprintf(stderr, "Wating for child process\n");
 		if( waitpid(pid, &status, 0) != pid){
 			perror("Wait:\n");
 		}
