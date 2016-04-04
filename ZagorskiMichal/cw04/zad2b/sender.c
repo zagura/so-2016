@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <signal.h>
@@ -13,7 +13,7 @@ int counter = 0;
 int usr2 = 1;
 void count(int signo){
 	counter++;
-	fprintf(stderr, "Parent catched usr1: %d \n", counter);
+	//fprintf(stderr, "Parent catched usr1: %d \n", counter);
 }
 
 void printer(int signo){
@@ -36,7 +36,7 @@ int main(int argc, char** argv){
 	int signal_error = 0;
 	signal_error += sigfillset(&set);
 	//signal_error += sigdelset(&set, SIGUSR2);
-	signal_error += sigdelset(&set, SIGUSR1);
+	//signal_error += sigdelset(&set, SIGUSR1);
 	signal_error += sigprocmask(SIG_BLOCK, &set, &old);
 
 	if(signal_error < 0){
@@ -97,6 +97,7 @@ int main(int argc, char** argv){
 			if(kill(pid, SIGUSR1) == -1){
 				perror("KILL");
 			}
+		//	fprintf(stderr, "Parent send usr1: %d \n", counter);
 			sigsuspend(&suspend);
 			errno = 0;
 		}

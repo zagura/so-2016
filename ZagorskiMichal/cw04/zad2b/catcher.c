@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 200801L
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <signal.h>
@@ -15,6 +15,7 @@ void count(int signo){
 	if(signo == SIGUSR1){
 		counter++;
 	}
+	//fprintf(stderr, "Child catched usr1: %d \n", counter);
 	kill(parent, SIGUSR1);
 	
 }
@@ -32,7 +33,7 @@ int main(int argc, char** argv){
 	int signal_error = 0;
 
 	signal_error += sigfillset(&set);
-	signal_error += sigdelset(&set, SIGUSR1);
+	//signal_error += sigdelset(&set, SIGUSR1);
 	signal_error += sigprocmask(SIG_BLOCK, &set, &old);
 	if(signal_error < 0){
 		perror("SIGMASK:\n");
