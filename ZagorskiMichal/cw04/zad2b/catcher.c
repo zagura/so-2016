@@ -10,16 +10,19 @@
 
 int counter = 0;
 int usr2 = 1;
+pid_t parent;
 void count(int signo){
 	if(signo == SIGUSR1){
 		counter++;
 	}
+	kill(parent, SIGUSR1);
+	
 }
 
 void printer(int signo){
 	if(signo == SIGUSR2){
 		usr2 = 0;
-	//	printf("Catched SIGUSR2\n");
+		printf("Catched SIGUSR2\n Received SIGUSR1: %d\n", counter);
 	}
 }
 
@@ -55,20 +58,26 @@ int main(int argc, char** argv){
 	signal(SIGUSR2, &printer);
 
 	if(errno != 0) perror(NULL);
-	pid_t parent = getppid();
+	parent = getppid();
 
 	if(argc == 2){
 		parent = (pid_t)atoi(argv[1]);
 	}
-
+/*	union sigval val;
+	val.sival_int = SIGUSR1;*/
 	while(usr2){
 		sigsuspend(&suspend);
+		if(usr2){
+/*			if(sigqueue(parent, SIGUSR1, val) == -1){
+				perror("CATCHER -- LINE 70");
+			}*/
+		}
 	}
-
+/*
 	while(counter--){
 		kill(parent, SIGUSR1);
 	}
-
+*/
 	kill(parent, SIGUSR2);
 
 	return 0;
