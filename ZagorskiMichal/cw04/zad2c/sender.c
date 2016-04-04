@@ -9,15 +9,19 @@
 #include <string.h>
 #include <errno.h>
 
+#undef SIGUSR1
+#define SIGUSR1 SIGRTMIN+5
+#undef SIGUSR2
+#define SIGUSR2 SIGRTMIN+6
+
 int counter = 0;
 int usr2 = 1;
 void count(int signo){
 	counter++;
 }
-
 void printer(int signo){
 	usr2 = 0;
-	printf("Received SIGUSR2\n");
+//	printf("Received SIGUSR2\n");
 }
 
 int main(int argc, char** argv){
@@ -50,6 +54,7 @@ int main(int argc, char** argv){
 	signal_error += sigfillset(&suspend);
 	signal_error += sigdelset(&suspend, SIGUSR1);
 	signal_error += sigdelset(&suspend, SIGUSR2);
+
 	if(signal_error < 0){
 		perror("SIGMASK:\n");
 		return EXIT_FAILURE;
@@ -61,13 +66,9 @@ int main(int argc, char** argv){
 	act.sa_flags = 0;
 	struct sigaction old_act;
 	
-	if(sigaction(SIGUSR1, &act, &old_act) == -1){
-		perror("Sigaction: ");
-	}
-	if( signal(SIGUSR2, &printer) == SIG_ERR){
-		perror("SIGNAL:\n");
-	}
-	errno = 0;
+	sigaction(SIGUSR1, &act, &old_act);
+	signal(SIGUSR2, &printer);
+
 	pid_t pid = fork();
 	
 	if(pid == 0){
@@ -84,16 +85,10 @@ int main(int argc, char** argv){
 	if(pid > 0){
 		sleep(1);								//Wait for child process to call and begin exec function
 		while(send_counter--){
-			if(kill(pid, SIGUSR1) == -1){
-				perror("KILL");
-			}
-			sigsuspend(&suspend);
-			errno = 0;
+			kill(pid, SIGUSR1);
 		}
 
-		if(kill(pid, SIGUSR2) == -1){
-			perror("KILL");
-		}
+		kill(pid, SIGUSR2);
 		int status = 0;
 
 		while(usr2){

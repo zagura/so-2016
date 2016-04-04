@@ -32,9 +32,9 @@ int main(int argc, char** argv){
 	
 	sigset_t set, old;
 	int signal_error = 0;
-	signal_error += sigfillset(&set);
-	//signal_error += sigdelset(&set, SIGUSR2);
-	signal_error += sigdelset(&set, SIGUSR1);
+	signal_error += sigemptyset(&set);
+	signal_error += sigaddset(&set, SIGUSR1);
+	signal_error += sigaddset(&set, SIGUSR2);
 	signal_error += sigprocmask(SIG_BLOCK, &set, &old);
 
 	if(signal_error < 0){

@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 200801L
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <signal.h>
@@ -7,6 +7,11 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <errno.h>
+
+#undef SIGUSR1
+#define SIGUSR1 SIGRTMIN+5
+#undef SIGUSR2
+#define SIGUSR2 SIGRTMIN+6
 
 int counter = 0;
 int usr2 = 1;
@@ -32,6 +37,7 @@ int main(int argc, char** argv){
 	signal_error += sigaddset(&set, SIGUSR1);
 	signal_error += sigaddset(&set, SIGUSR2);
 	signal_error += sigprocmask(SIG_BLOCK, &set, &old);
+	
 	if(signal_error < 0){
 		perror("SIGMASK:\n");
 		return EXIT_FAILURE;
@@ -41,6 +47,7 @@ int main(int argc, char** argv){
 	signal_error += sigfillset(&suspend);
 	signal_error += sigdelset(&suspend, SIGUSR1);
 	signal_error += sigdelset(&suspend, SIGUSR2);
+
 	if(signal_error < 0){
 		perror("SIGMASK:\n");
 		return EXIT_FAILURE;
