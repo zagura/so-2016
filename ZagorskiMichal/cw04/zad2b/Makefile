@@ -7,10 +7,6 @@ SRCS=catcher.c sender.c
 all: compile run
 #@echo "Build finished succesfully"
 
-# run: $(EXEC)
-# 	@echo "Running generator and test programs"
-# 	./run.sh > readfile.log
-
 compile: $(EXEC)
 	
 % : %.o
