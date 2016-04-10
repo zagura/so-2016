@@ -10,12 +10,14 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-#define handle(fun, val, text, exited) if(fun val){										\
-							fprintf(stderr, "Line %d\n", __LINE__);						\
-							perror(text "\n"); 											\
-							if(exited){													\
-								exit(EXIT_FAILURE); 									\
+#define handle(fun, val, text, exited) 								   \
+						if(fun val){					                     \
+							fprintf(stderr, "Line %d\n", __LINE__);		\
+							perror(text "\n"); 									\
+							if(exited){												\
+								exit(EXIT_FAILURE); 								\
 							}															\
+							errno = 0;						                  \
 						}
 
 int main(int argc, char** argv){
