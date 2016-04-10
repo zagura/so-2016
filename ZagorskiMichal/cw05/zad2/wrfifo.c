@@ -48,8 +48,11 @@ int main(int argc, char** argv){
 
     while(getline(&line, &size, stdin) != -1){
         time_t write_time = time(NULL);
-        line[strlen(line)-1] = 0;
-        fprintf(fifo, "%d - %s - %s", getpid(), line, ctime(&write_time));
+        char* date = ctime(&write_time);
+        int index = strlen(date) -1;
+        date[index] = 0;
+        fprintf(fifo, "%d - %s - %s", getpid(), date, line);
+        date[index] = '\n';
         fflush(fifo);
         free(line);
         line = NULL;
