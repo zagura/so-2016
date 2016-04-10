@@ -46,14 +46,14 @@ int main(int argc, char** argv){
     
     size_t size = 0;
 
-        while(getline(&line, &size, fifo) != -1){
-            time_t read_time = time(NULL);
-            char* date = ctime(&read_time);
-            int index = strlen(date) -1;
-            date[index] = 0;
-            fprintf(stdout, "%s - %s", date, line);
-            date[index] = '\n';
-        }
+    while(getline(&line, &size, fifo) != -1){
+        time_t read_time = time(NULL);
+        char* date = ctime(&read_time);
+        int index = strlen(date) -1;
+        date[index] = 0;
+        fprintf(stdout, "%s - %s", date, line);
+        date[index] = '\n';
+    }
 
     int_handle(0);
 }

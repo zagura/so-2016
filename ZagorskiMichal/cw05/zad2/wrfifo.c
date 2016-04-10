@@ -31,6 +31,7 @@ void int_handle(int signo){
     fprintf(stdout, "\nClosing program wrfifo\n");
     if(!line){
         free(line);
+        line = NULL;
     }
     exit(EXIT_SUCCESS);
 }
@@ -45,12 +46,15 @@ int main(int argc, char** argv){
     
     size_t size = 0;
 
-        while(getline(&line, &size, stdin) != -1){
-            time_t write_time = time(NULL);
-            line[strlen(line)-1] = 0;
-            fprintf(fifo, "%d - %s - %s", getpid(), line, ctime(&write_time));
-            fflush(fifo);
-        }
+    while(getline(&line, &size, stdin) != -1){
+        time_t write_time = time(NULL);
+        line[strlen(line)-1] = 0;
+        fprintf(fifo, "%d - %s - %s", getpid(), line, ctime(&write_time));
+        fflush(fifo);
+        free(line);
+        line = NULL;
+        size = 0;
+    }
 
     int_handle(0);
     return EXIT_SUCCESS;
