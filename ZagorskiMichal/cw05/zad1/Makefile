@@ -12,7 +12,7 @@ compile: $(EXEC)
 % : %.o
 	$(CC) $(CFLAGS) $< -o $@
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 .PHONY: clean all run
 clean:
 	@echo "Cleaning project"

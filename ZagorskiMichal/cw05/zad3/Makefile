@@ -3,7 +3,7 @@ CFLAGS=-Wall -pedantic -std=c99 -O0
 EXEC=prog
 OBJS=prog.o
 SRCS=prog.c
-#CFLAGS += -g
+CFLAGS += -g
 all: compile run
 
 
