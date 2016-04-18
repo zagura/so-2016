@@ -31,6 +31,8 @@
 #define Q_NUM 4
 #define Q_RES 5
 #define Q_DEL 6
+#define Q_SIZE 256
+
 
 void int_handler(int signo){
     if(signo == SIGINT){
@@ -260,17 +262,18 @@ void close_queue(void){
 
 int main(int argc, char** argv){
 	handle(argc, != 2, "Wrong number of arguments", 1);
+    struct mq_attr attrs;
+    attrs.mq_flags = 0;
+    attrs.mq_maxmsg = Q_SIZE*2;
+    attrs.mq_msgsize = 25*sizeof(char);
+    attrs.mq_curmsgs = 0;
 
     handle((server = mq_open(argv[1], O_WRONLY)), == -1, "Can't open POSIX queue", 1);
     srand(time(NULL));
     name = rand();
     buf = (char*)malloc(25*sizeof(char));
     char* tmp_name = to_name(name);   
-    handle((client = mq_open(tmp_name, O_RDWR)), == -1, "Can't open POSIX queue", 1);    
-    struct mq_attr attrs;
-    mq_getattr(client, &attrs);
-    attrs.mq_msgsize = 24*sizeof(char);
-    mq_setattr(client, &attrs, NULL);
+    handle((client = mq_open(tmp_name, O_RDWR, 0666, &attrs)), == -1, "Can't open POSIX queue", 1);    
 
     free(tmp_name);
     tmp_name = NULL;

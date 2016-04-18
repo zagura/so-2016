@@ -160,11 +160,12 @@ int main(int argc, char** argv){
 		clients[i] = -1;
 	}
     buf = (char*)malloc(25*sizeof(char));
-	server_id = mq_open(argv[1], O_RDWR | O_CREAT, 0666);
     struct mq_attr attrs;
-    mq_getattr(server_id, &attrs);
+    attrs.mq_flags = 0;
+    attrs.mq_maxmsg = Q_SIZE*2;
     attrs.mq_msgsize = 25*sizeof(char);
-    mq_setattr(server_id, &attrs, NULL);
+    attrs.mq_curmsgs = 0;
+	server_id = mq_open(argv[1], O_RDWR | O_CREAT, 0666, &attrs);
 	handle(server_id, == -1, "Error, opening queue for server", 1);
 
 	handle(atexit(&close_queue), != 0, "Can't set closing command", 1);	
