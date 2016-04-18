@@ -156,6 +156,5 @@ int main(int argc, char** argv){
 			handle(msgsnd(id, &msg_server, msgsize, 0), == -1, "Cant send close message", 0);
 		}
 	}
-	sleep(1);
 	return EXIT_SUCCESS;
 }

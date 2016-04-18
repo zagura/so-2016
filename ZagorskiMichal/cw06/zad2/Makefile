@@ -1,23 +1,25 @@
 CC=gcc
-SRC=server.c client.c
-OBJ=server.o client.o
-EXEC=server client
+SRCS=server.c client.c
+OBJS=server.o client.o
+EXECS=server client
 CFLAGS=-Wall -pedantic -O0 -Wextra -std=c99
-CFLAGS=-g
+LFLAGS=-lrt
+#CFLAGS=-g
 
 all: compile
 
 full: clean compile
 
-compile: $(EXEC)
+compile: $(EXECS)
 
-% : %.o
-	$(CC) $(CFLAGS) -o $< $@
+$(EXECS) : $(OBJS)
+	$(CC) $(CFLAGS) server.o -o server -lrt
+	$(CC) $(CFLAGS) client.o -o client -lrt
 
-%.o: %.c
-	$(CC) -c $(CFLAGS) $@
+%.o : %.c
+	$(CC) -c $(CFLAGS) $< -o $@ $(LFLAGS)
 
-.PHONY clean
+.PHONY: clean clean compile all full
 clean:
-	@rm -f $(EXEC) $(OBJ)
-	@echo "Cleaning done\n"
+	@rm -f $(EXECS) $(OBJS)
+	@echo "Cleaning done"
