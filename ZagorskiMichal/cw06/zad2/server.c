@@ -3,8 +3,6 @@
 #define _POSIX_SOURCE 200809L
 
 #include <sys/types.h>
-/*#include <sys/ipc.h>
-#include <sys/msg.h>*/
 #include <mqueue.h>
 
 #include <unistd.h>
@@ -15,6 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <string.h>
 
 #define handle(fun, val, text, exited)                                   \
                         if(fun val){                                     \
@@ -32,9 +31,9 @@
 #define Q_NUM 4
 #define Q_RES 5
 #define Q_DEL 6
-#define Q_SIZE 256
-
-char* buf = NULL;                       
+#define Q_SIZE 10
+#define M_SIZE 8192
+char* tmp_name;                     
 int name = 0;
 int clients[Q_SIZE];
 void int_handler(int signo){
@@ -52,9 +51,10 @@ struct mz_msgbuf{
         unsigned int number;
         unsigned int result;
     } info;
-};
+}__attribute__ ((packed));
 
 typedef struct mz_msgbuf msg_t;
+#define BUF_SIZE (sizeof(struct mz_msgbuf))
 
 void reset_msg(msg_t* msg){
     msg->mtype = 0L;
@@ -63,72 +63,16 @@ void reset_msg(msg_t* msg){
     msg->info.number = 0;
     msg->info.result = 0;
 }
-void buf_to_msg(msg_t* msg){
-    //Buffer size is always 24
-    long mtype = (long)buf[7] - 1;
-    int queue_id = 0;
-    for(int i = 3; i >= 0; i--){
-        queue_id += (unsigned int)buf[8+i] - 1;
-        queue_id <<=(i > 0) ? 8 : 0;
-    }
-    int id = 0;
-    for(int i = 3; i >= 0; i--){
-        id += (unsigned int)buf[12+i] - 1;
-        id <<=(i > 0) ? 8 : 0;
-    }
-    unsigned int number = 0;
-    for(int i = 3; i >= 0; i--){
-        number += (unsigned int)buf[16+i] - 1;
-        number <<=(i > 0) ? 8 : 0;
-    }
-    unsigned int result = 0;
-    for(int i = 3; i >= 0; i--){
-        result += (unsigned int)buf[12+i] - 1;
-        result <<=(i > 0) ? 8 : 0 ;
-    }
-    msg->mtype = mtype;
-    msg->info.queue_id = queue_id;
-    msg->info.id = id;
-    msg->info.number = number;
-    msg->info.result = result;
-    for(int i = 0; i < 24; i++){
-        buf[i] = 0;
-    }
-}
 
-void msg_to_buf(msg_t* msg){
-    for(int i = 0; i < 24; i++){
-        buf[i] = 0;
-    }
-    buf[7] = msg->mtype % 256;
-    int tmp = msg->info.queue_id;
-    for(int i = 3; i >= 0; i--){
-        buf[8+i] = tmp % 256 + 1;
-        tmp >>= 8;
-    }
-    tmp = msg->info.id;
-    for(int i = 3; i >= 0; i--){
-        buf[12+i] = tmp % 256 + 1;
-        tmp >>= 8;
-    }
-    unsigned int utmp = msg->info.number;
-    for(int i = 3; i >= 0; i--){
-        buf[16+i] = utmp % 256 + 1;
-        utmp >>= 8;
-    }
-    utmp = msg->info.result;
-    for(int i = 3; i >= 0; i--){
-        buf[20+i] = utmp % 256 + 1;
-        utmp >>= 8;
-    }
-}
+
 char* to_name(int num){
     char* n = calloc(6, sizeof(char));
     n[0] = '/';
     for(int i = 1; i < 5; i++){
-        n[i] = num % 256;
+        n[i] = num % 255 + 1;
         num /= 256;
     }
+    n[5] = '\0';
     return n;
 }
 
@@ -137,13 +81,10 @@ void close_queue(void){
 		if(clients[i] > -1){
 			handle(mq_close(clients[i]), == -1, "Closing client's queue", 1);
 		}
-	}
-    char* tmp_name = to_name(name);   
+	} 
     handle(mq_unlink(tmp_name), == -1, "Can't unlink POSIX queue", 1);    
-    free(tmp_name);
     tmp_name = NULL;
-    free(buf);
-    buf = NULL;
+
 }
 
 void print_message(const char* text, msg_t msg_client){
@@ -159,15 +100,16 @@ int main(int argc, char** argv){
 	for(int i = 0; i < Q_SIZE; i++){
 		clients[i] = -1;
 	}
-    buf = (char*)malloc(25*sizeof(char));
     struct mq_attr attrs;
     attrs.mq_flags = 0;
-    attrs.mq_maxmsg = Q_SIZE*2;
-    attrs.mq_msgsize = 25*sizeof(char);
+    attrs.mq_maxmsg = Q_SIZE;
+    attrs.mq_msgsize = M_SIZE;
     attrs.mq_curmsgs = 0;
-	server_id = mq_open(argv[1], O_RDWR | O_CREAT, 0666, &attrs);
+	argv[1][0] = '/';
+	server_id = mq_open(argv[1], O_RDWR | O_CREAT, 0666, NULL);
 	handle(server_id, == -1, "Error, opening queue for server", 1);
-
+	handle(mq_setattr(server_id, &attrs, NULL), == -1, "Can't set attributes", 0);
+	tmp_name = argv[1];
 	handle(atexit(&close_queue), != 0, "Can't set closing command", 1);	
 	srand(time(NULL));
 	handle(signal(SIGINT, &int_handler), == SIG_ERR, "Can't set signal handling", 0);
@@ -176,26 +118,26 @@ int main(int argc, char** argv){
 
     msg_t msg_client;
     msg_t msg_server;
-    size_t msgsize = attrs.mq_msgsize;
 	while(1){
 		reset_msg(&msg_client);
-		//unsigned int type = 0;
-		handle(mq_receive(server_id, buf, msgsize, NULL), == -1, "Can't read message from queue", 1);
-		buf_to_msg(&msg_client);
+		char buf2[BUF_SIZE];
+		handle(mq_receive(server_id, buf2, M_SIZE, NULL), == -1, "Can't read message from queue", 1);
+		memcpy(&msg_client, buf2, BUF_SIZE);
+		//print_message("Server received ", msg_client);
 		long msgtype = msg_client.mtype;
 		switch(msgtype){
 			case Q_QID:{
-				//print_message("Client's registration", msg_client);
 				int index = size;
 				size++;
 				reset_msg(&msg_server);
 				msg_server.mtype = Q_CID;
 				msg_server.info.id = index;
-				char* tmp_name = to_name(msg_client.info.queue_id);
-				msg_to_buf(&msg_server);
-				handle((clients[index] = mq_open(tmp_name, O_WRONLY)), == -1, "Can't open client's queue", 0);
-				handle(mq_send(clients[index], buf, msgsize, Q_CID), == -1, "Can't send id message", 0);
-				//print_message("Server sends id", msg_server);
+				char* tmp_name2 = to_name(msg_client.info.queue_id);
+				char buf_name[BUF_SIZE];
+				memcpy(buf_name, &msg_server, BUF_SIZE);
+				handle((clients[index] = mq_open(tmp_name2, O_WRONLY, 0666, NULL)), == -1, "Can't open client's queue", 0);
+				handle(mq_send(clients[index], buf_name, BUF_SIZE, Q_CID), == -1, "Can't send id message", 0);
+				free(tmp_name2);
 				break;
 			}
 			case Q_RED:{
@@ -203,8 +145,9 @@ int main(int argc, char** argv){
 				msg_server.mtype = Q_NUM;
 				msg_server.info.number = rand() + 1;
 				int index = msg_client.info.id;
-				msg_to_buf(&msg_server);
-				handle(mq_send(clients[index], buf, msgsize, Q_NUM), == -1, "Can't send next number", 0);
+				char buf_num[BUF_SIZE];
+				memcpy(buf_num, &msg_server, BUF_SIZE);
+				handle(mq_send(clients[index], buf_num, BUF_SIZE, Q_NUM), == -1, "Can't send next number", 0);
 				break;
 			}
 			case Q_RES:{
@@ -223,16 +166,7 @@ int main(int argc, char** argv){
 				fprintf(stderr, "Unrecognized message in queue\n");
 				break;
 		}
-//		fprintf(stderr, "Next loop iteration\n");
+
 	}
-//	fprintf(stderr, "SIZE: %d\n", size);
-/*	for(int i = 0; i < size; i++){
-		int id = clients[i];
-		if(id > -1){
-			reset_msg(&msg_server);
-			msg_server.mtype = Q_DEL;
-			handle(msgsnd(id, &msg_server, msgsize, 0), == -1, "Cant send close message", 0);
-		}
-	}*/
 	return EXIT_SUCCESS;
 }
