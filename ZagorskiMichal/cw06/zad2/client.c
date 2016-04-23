@@ -4,8 +4,6 @@
 #define _POSIX_SOURCE 200809L
 
 #include <sys/types.h>
-/*#include <sys/ipc.h>
-#include <sys/msg.h>*/
 #include <mqueue.h>
 #include <unistd.h>
 #include <errno.h>
@@ -71,15 +69,6 @@ void print_message(const char* text, msg_t msg_client){
             text, msg_client.mtype, msg_client.info.queue_id, 
             msg_client.info.id, msg_client.info.number, msg_client.info.result);
 }
-/*void buf_to_msg(msg_t* msg){
-	memcpy(msg,buf, sizeof(*(msg))); 	
-}
-void buf2_to_msg(msg_t* msg){
-    memcpy(msg,buf2, sizeof(*(msg)));    
-}
-void msg_to_buf(msg_t* msg){
-	memcpy(buf, msg, sizeof(*(msg)));
-}*/
 
 char* to_name(int num){
     char* n = calloc(6, sizeof(char));
@@ -91,7 +80,6 @@ char* to_name(int num){
     n[5] = '\0';
     return n;
 }
-
 
 unsigned int is_prime(unsigned int n){
     if (n < 2) return 0;
@@ -128,8 +116,6 @@ void count(int id){
     char buf_id[BUF_SIZE];
     handle(mq_receive(client, buf_id, M_SIZE, NULL), == -1, "Can't read number messeage", 0);
     memcpy(&msg_server, buf_id, BUF_SIZE);
-    //buf2_to_msg(&msg_server);
-    //print_message("given number ", msg_server);
     reset_msg(&msg_client);
 
     msg_client.mtype = Q_RES;
