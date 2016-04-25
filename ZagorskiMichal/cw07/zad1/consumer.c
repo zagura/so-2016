@@ -40,7 +40,7 @@ void sig_INT(int signo){
         exit(EXIT_SUCCESS);
     }
 }
-void exited(void){
+void at_exit(void){
     handle(shmdt(shmem), == -1, "Can't deatach shared memory segment", 0);
 }
 int main(int argc, char** argv){
@@ -54,7 +54,7 @@ int main(int argc, char** argv){
         == -1, "Can't get shared memory", 1);
     handle((semaphores = semget(sem_key, SIZE + 3, IPC_CREAT | 0666)), == -1, "Can't get semaphores set", 1);
     handle((shmem = (int*)shmat(mem, shmem, 0)), == (void*)-1, "Can't attach shered memory", 1);
-    handle(atexit(&exited), == -1, "Can't set exit action",1);
+    handle(atexit(&at_exit), == -1, "Can't set exit action",1);
     signal(SIGINT, &sig_INT);
     struct timeval mz_time;
     //handle(0, ==0, "Consumer: Debbug", 0);
