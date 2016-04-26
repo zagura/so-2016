@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <wait.h>
 #include <string.h>
+#include <time.h>
 
 #define handle(fun, val, text, exited)                                   \
                         if(fun val){                                     \
@@ -25,13 +26,15 @@
                             errno = 0;                                   \
                         }
 
-#define SIZE 1024 
+#define SIZE 256 
 
 int mem_fd = -1;
 int* mem = NULL;
 sem_t *semaphore = NULL;
 int full_report = 1;
-
+int pid = -1;
+char semstring[256];
+char memstring[256];
 void sig_handler(int signo){
     if(signo == SIGINT){
         exit(EXIT_SUCCESS);
@@ -40,12 +43,15 @@ void sig_handler(int signo){
 
 void at_exit(void){
     handle(sem_close(semaphore), == -1, "Can't close semaphore", 1);
-    handle(sem_unlink("/sem1"), == -1, "can't unlink semaphore", 1);
+
     if(mem_fd > 0){
         close(mem_fd);
     }
-    handle(shm_unlink("/mem"), == -1, "Can't unlink memory", 1);
-    handle(munmap(mem, SIZE), ==-1, "Can't remove shared memory segment",1);
+    if(getpid() == pid){
+        handle(sem_unlink(semstring), == -1, "can't unlink semaphore", 1);
+        handle(shm_unlink(memstring), == -1, "Can't unlink memory", 1);
+        handle(munmap(mem, SIZE), ==-1, "Can't remove shared memory segment",1);
+    }
 }
 
 void reader(int number){
@@ -53,6 +59,7 @@ void reader(int number){
     struct timeval r_time;
 
     for(int i = 0; i < SIZE; i++){
+        sleep(1);
         handle(sem_wait(semaphore), == -1, "Reader: Can't drop semaphore", 1);
         if(mem[i] == number){
             gettimeofday(&r_time, NULL);
@@ -71,17 +78,19 @@ void reader(int number){
 }
 
 void writer(){
+    srand(time(NULL));
     int counter = rand();
     int begin = rand() % SIZE;
     struct timeval w_time;
     while(counter--){
         int index = rand() % SIZE;
+        sleep(1);
         handle(sem_wait(semaphore), == -1, "Writer: Can't drop semaphore", 1);
-        handle(0, == 0, "Writer: Debug", 0);
+        //handle(0, == 0, "Writer: Debug", 0);
         gettimeofday(&w_time, NULL);
         mem[index] = begin;
-        printf("(%d %ld:%ld) Wpisałem liczbę %d na pozycję %d. Pozostało %d zadań\n", 
-            getpid(), w_time.tv_sec, w_time.tv_usec, begin, index, counter);
+        printf("(%d %ld:%ld:%ld) Wpisałem liczbę %d na pozycję %d. Pozostało %d zadań\n", 
+            getpid(), w_time.tv_sec / 60, w_time.tv_sec%60, w_time.tv_usec, begin, index, counter);
         begin++;
         handle(sem_post(semaphore), == -1, "Writer: Can't post semaphore", 1);
         if(begin < begin-1) break;
@@ -92,6 +101,8 @@ void writer(){
 int main(int argc, char** argv){
 /*    handle(argc, < 5,  "Too few arguments\n"
         "There should be [-u]", 1);*/
+    srand(time(NULL));
+    pid = getpid();
     handle(argc, > 2,  "Too many arguments\n"
         "There should be [-u]", 1);
 
@@ -101,8 +112,16 @@ int main(int argc, char** argv){
             full_report = 0;
         }
     }
-    handle((semaphore = sem_open("/sem1", O_RDWR, 0666, 1)), == SEM_FAILED, "Can't create semaphore", 1);
-    handle((mem_fd = shm_open("/mem", O_RDWR | O_CREAT, 0666)), == -1, "Can't set shared memory object", 1);
+    sigset_t set;
+    sigfillset(&set);
+    sigdelset(&set, SIGINT);
+    sigprocmask(SIG_SETMASK, &set, NULL);
+    strncpy(semstring, "/sem1", 4);
+    strncpy(memstring, "/mem1", 4);
+    sprintf(&semstring[4], "%d", getpid());
+    sprintf(&memstring[4], "%d", getpid());
+    handle((semaphore = sem_open(semstring, O_RDWR | O_CREAT, 0666, 1)), == SEM_FAILED, "Can't create semaphore", 1);
+    handle((mem_fd = shm_open(memstring, O_RDWR | O_CREAT, 0666)), == -1, "Can't set shared memory object", 1);
     handle(ftruncate(mem_fd, SIZE*(sizeof(int))), == -1, "Can't set memory size", 1);
     handle((mem = (int*)mmap(NULL, SIZE*(sizeof(int)), PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0)), == NULL, "can't create Shared memory segment", 1);
     
@@ -124,6 +143,7 @@ int main(int argc, char** argv){
                 reader( rand() % SIZE );
             }
         }
+        sleep(1);
     }
    // handle(0, == 0, "Debug", 0);
     for(int i = writers; i < readers; i++){
