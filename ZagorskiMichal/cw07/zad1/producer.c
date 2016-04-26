@@ -45,11 +45,14 @@ void at_exit(void){
 }
 int main(int argc, char** argv){
     srand(time(NULL));
-
+    sigset_t set;
+    sigfillset(&set);
+    sigdelset(&set, SIGINT);
+    sigprocmask(SIG_SETMASK, &set, NULL);
 	handle(argc, != 3, "Producer: wrong number of arguments\n"
         "There should be <key for memory> <key for semaphore>", 1);
 	key_t shm_key = atoi(argv[1]);
-	key_t sem_key = atoi(argv[1]);
+	key_t sem_key = atoi(argv[2]);
 	handle((mem = shmget(shm_key, 0, IPC_CREAT | 0666)), 
         == -1, "Can't get shared memory", 1);
     handle((semaphores = semget(sem_key, SIZE + 3, IPC_CREAT | 0666)), == -1, "Can't get semaphores set", 1);
@@ -62,16 +65,14 @@ int main(int argc, char** argv){
         struct sembuf access[2];
         access[0].sem_num = SIZE+2;
         access[0].sem_op = -1;
-        access[0].sem_flg = SEM_UNDO;
+        access[0].sem_flg = 0;
         access[1].sem_num = SIZE+1;
         access[1].sem_op = -1;
-        access[1].sem_flg = SEM_UNDO;
+        access[1].sem_flg = 0;
         struct sembuf op;
         op.sem_op = -1;
-        op.sem_flg = SEM_UNDO;
-   //     handle(0, ==0, "Producer: Debbug", 0);
+        op.sem_flg = 0;
         handle(semop(semaphores, access, 2), == -1, "Can't drop main semaphore", 0);
-   //     handle(0, ==0, "Producer: Debbug", 0);
         int index = shmem[SIZE+1];
         shmem[SIZE+1] = (index+1)% SIZE;
         op.sem_num = index;

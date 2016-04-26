@@ -45,11 +45,14 @@ void at_exit(void){
 }
 int main(int argc, char** argv){
     srand(time(NULL));
-
+    sigset_t set;
+    sigfillset(&set);
+    sigdelset(&set, SIGINT);
+    sigprocmask(SIG_SETMASK,&set, NULL);
     handle(argc, != 3, "Consumer: wrong number of arguments\n"
         "There should be <key for memory> <key for semaphore>", 1);
     key_t shm_key = atoi(argv[1]);
-    key_t sem_key = atoi(argv[1]);
+    key_t sem_key = atoi(argv[2]);
     handle((mem = shmget(shm_key, 0, IPC_CREAT | 0666)), 
         == -1, "Can't get shared memory", 1);
     handle((semaphores = semget(sem_key, SIZE + 3, IPC_CREAT | 0666)), == -1, "Can't get semaphores set", 1);
@@ -59,19 +62,17 @@ int main(int argc, char** argv){
     struct timeval mz_time;
     //handle(0, ==0, "Consumer: Debbug", 0);
     while(1){
-        struct sembuf access;
-        access.sem_num = SIZE+2;
-        access.sem_op = -1;
-        access.sem_flg = SEM_UNDO;
-        struct sembuf read;
-        read.sem_num = SIZE+0;
-        read.sem_op = -1;
-        read.sem_flg = SEM_UNDO;
+        struct sembuf access[2];
+        access[0].sem_num = SIZE+2;
+        access[0].sem_op = -1;
+        access[0].sem_flg = 0;
+        access[1].sem_num = SIZE;
+        access[1].sem_op = -1;
+        access[1].sem_flg = 0;
         struct sembuf op;
         op.sem_op = -1;
-        op.sem_flg = SEM_UNDO;
-        handle(semop(semaphores, &access, 1), == -1, "Can't drop main semaphore", 0);
-        handle(semop(semaphores, &read, 1), == -1, "Can't drop index semaphore", 0);
+        op.sem_flg = 0;
+        handle(semop(semaphores, access, 2), == -1, "Can't drop main semaphore", 0);
         int index = shmem[SIZE+0];
         shmem[SIZE+0] = (index+1)% SIZE;
         op.sem_num = index;
@@ -101,14 +102,13 @@ int main(int argc, char** argv){
         op.sem_op = 1;
         op.sem_flg = 0;
         handle(semop(semaphores, &op, 1), == -1, "Can't up element's semaphore", 0);
-        read.sem_op = 1;
-        read.sem_flg = 0;
-        read.sem_num = SIZE + 1;
-        handle(semop(semaphores, &read, 1), == -1, "Can't up index semaphore", 0);
-        access.sem_num = SIZE + 2;
-        access.sem_op = 1;
-        access.sem_flg = 0;
-        handle(semop(semaphores, &access, 1), == -1, "Can't up main semaphore", 0);
+        access[1].sem_op = 1;
+        access[1].sem_flg = 0;
+        access[1].sem_num = SIZE;
+        access[0].sem_num = SIZE + 2;
+        access[0].sem_op = 1;
+        access[0].sem_flg = 0;
+        handle(semop(semaphores, access, 2), == -1, "Can't up main semaphore", 0);
     }
     return 0;
 }

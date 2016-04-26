@@ -33,10 +33,13 @@
 //key size as max amount of chars for representing int with null byte
 int mem = -1;
 int semaphores = -1;
+int children = 0;
 void sig_handler(int signo){
     if(signo == SIGINT){
       //  struct 
-        handle(shmctl(mem, IPC_RMID, NULL), == -1, "Can't remove shm segment", 1);
+        handle(semctl(semaphores,0, IPC_RMID, NULL), == -1, "Can't remove semaphores",0);
+        handle(shmctl(mem, IPC_RMID, NULL), == -1, "Can't remove shm segment", 0);
+        //handle(semctl(semaphores,0, IPC_RMID, NULL), == -1, "Can't remove semaphores",0);
         exit(EXIT_SUCCESS);
     }
 }
@@ -44,16 +47,15 @@ void sig_handler(int signo){
 int main(int argc, char** argv){
     handle(argc, != 4, "Wrong number of arguments\n"
         "There should be <consumer count> <producer count> <file for shared memory>", 1);
-    int mem = -1;
     key_t shm_key;
-    handle((shm_key = ftok(argv[3], SHM)), == -1, "Can't get key for shared memory", 1);
+    handle((shm_key = ftok(argv[3], getpid() + SHM)), == -1, "Can't get key for shared memory", 1);
     handle((mem = shmget(shm_key, (SIZE + 2)*sizeof(int), IPC_CREAT | 0666)), 
         == -1, "Can't get shared memory", 1);
     // SIZE for elements
     // index == size+1 for read indexer
     // index == size for write indexer
     key_t sem_key;
-    handle((sem_key = ftok(argv[3], SEM)), == -1, "Can't get key for semaphore", 1);
+    handle((sem_key = ftok(argv[3], getpid() + SEM)), == -1, "Can't get key for semaphore", 1);
     semaphores = -1;
     handle((semaphores = semget(sem_key, SIZE + 3, IPC_CREAT | 0666)), == -1, "Can't get semaphores set", 1);
     // SIZE of content table,
@@ -80,13 +82,12 @@ int main(int argc, char** argv){
     }
     handle(shmdt(shmem), == -1, "Can't deatach shared memory segment", 0);
 
-
     int clients = atoi(argv[1]) + atoi(argv[2]);
     char key1[KEY_SIZE];
     char key2[KEY_SIZE];
     sprintf(key1, "%d", shm_key);
     sprintf(key2, "%d", sem_key);
- //   handle(0, == 0, "Debbug", 0);
+    //handle(0, == 0, "Debbug", 0);
     int producer;
     for(producer = 0; producer < atoi(argv[2]); producer++){
         pid_t child = fork();
@@ -107,6 +108,7 @@ int main(int argc, char** argv){
         handle(child, == -1, "Can't create consumer process", 0);
     }
     int all = 0;
+    children = clients;
     for(all = 0; all < clients; all++){
         int status;
         handle(wait(&status), == -1, "Can't get child exit status", 0);
