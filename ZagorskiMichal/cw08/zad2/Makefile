@@ -8,7 +8,9 @@ DEBUG=
 
 run: full
 	./$(EXECS) 9 Textfile.txt 10 Russia-Serbia
-
+2run:
+	$(CC) $(CFLAGS) $(DEBUG) zad2b.c -o zad2b $(LDFLAGS)
+	./zad2b 9 Textfile.txt 10 Russia-Serbia
 all: compile
 
 full: clean compile

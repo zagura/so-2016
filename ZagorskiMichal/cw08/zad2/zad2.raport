@@ -16,3 +16,13 @@ a)
 		- SIGUSR1: Wątek obsługuje sygnał, reszta nie reaguje.
 		- SIGKILL: Unicestwia wszystkie wątki, stosowny komunikat.
 		- SIGSTOP: Zatrzymane wszystkie utworzone wątki.
+
+b)
+	Komunikat: Błąd w obliczeniach zmiennoprzecinkowych (zrzut pamięci)
+	Wszystkie wątki zostały unicestwione.
+
+-------------------------------------------------------------------------
+System:
+	4.4.0-22-generic #39~14.04.1-Ubuntu SMP x86_64 GNU/Linux
+Komputer:
+	Laptop Lenovo W520, i7-2720QM (2,2 GHz)
