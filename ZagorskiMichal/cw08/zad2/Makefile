@@ -1,10 +1,13 @@
 CC=gcc
-SRCS=variant1.c variant2.c variant3.c
-OBJS=variant1.o variant2.o variant3.o
-EXECS=variant1 variant2 variant3
+SRCS=zad2a.c
+OBJS=zad2a.o
+EXECS=zad2a
 CFLAGS=-Wall -pedantic -O0 -Wextra -std=c11
 LDFLAGS=-pthread
 DEBUG=
+
+run: full
+	./$(EXECS) 9 Textfile.txt 10 Russia-Serbia
 
 all: compile
 
