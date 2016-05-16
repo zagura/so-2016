@@ -69,8 +69,10 @@ void exit_handler(void){
 		free(semaphores);
 		semaphores = NULL;
 	}
-
-
+	if(threads != NULL){
+		free(threads);
+		threads = NULL;
+	}
 }
 
 void* run(void* args){
@@ -84,26 +86,28 @@ void* run(void* args){
 	sem_t* waiter = semaphores[PHILOSOPHERS];
 	for(;;){
 		handle(sem_wait(waiter), == -1, "Can't drop waiter's sempahore.", 0);
-		flockfile(stdout);
-		fprintf(stdout, "Waiter accepted request for %d philosopher.\n", id);
-		funlockfile(stdout);
+		flockfile(stderr);
+		fprintf(stderr, "Waiter accepted request for %d philosopher.\n", id);
+		funlockfile(stderr);
 		handle(sem_wait(left), == -1, "Can't take left fork.", 0);
-		flockfile(stdout);
-		fprintf(stdout, "Philosopher %d took left fork.\n", id);
-		funlockfile(stdout);
+		flockfile(stderr);
+		fprintf(stderr, "Philosopher %d took left fork.\n", id);
+		funlockfile(stderr);
 		handle(sem_wait(right), == -1, "Can't take right fork.", 0);
+		flockfile(stderr);
+		fprintf(stderr, "Philosopher %d took right fork\n", id);
+		funlockfile(stderr);
 		flockfile(stdout);
-		fprintf(stdout, "Philosopher %d took right fork\n", id);
 		fprintf(stdout, "%d eating... -------------------------------------\n", id);
 		funlockfile(stdout);
 		handle(sem_post(right), == -1, "Can't post right fork", 0);
-		flockfile(stdout);
-		fprintf(stdout, "Philosopher %d returned right fork\n", id);
-		funlockfile(stdout);
+		flockfile(stderr);
+		fprintf(stderr, "Philosopher %d returned right fork\n", id);
+		funlockfile(stderr);
 		handle(sem_post(left), == -1, "Can't post left fork", 0);
-		flockfile(stdout);
-		fprintf(stdout, "Philosopher %d returned left fork.\n", id);
-		funlockfile(stdout);
+		flockfile(stderr);
+		fprintf(stderr, "Philosopher %d returned left fork.\n", id);
+		funlockfile(stderr);
 		handle(sem_post(waiter), == -1, "Can't post waiter's semaphore", 0);
 		flockfile(stdout);
 		fprintf(stdout, "%d thinking... +++++++++++++++++++++++++++++++++++\n", id);
