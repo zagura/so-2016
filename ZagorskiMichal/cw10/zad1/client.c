@@ -56,43 +56,45 @@ msg_t message;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 char* line = NULL;
 
-
-void send_message(){  
-    msg_t message;
-    strncpy(message.id, name, sizeof(name));
-    strncpy(message.m, buffer1, sizeof(buffer1));
-    handle(sendto(socket_fd, &message, sizeof(msg_t), 0, addr, size_addr), == -1, "Can't send message to server", 1);
+void* io_thread(void* io){
+	(void)io;
+	int out = dup(pipeToServer[1]);
+	int in = dup(pipeFromServer[0]);
+	//close(pipeFromServer[1]);
+	//close(pipeToServer[0]);
+	struct pollfd mz_poll[2];
+    mz_poll[0] = (struct pollfd){ 
+        .fd = 0, 
+        .events = POLLIN, 
+        .revents = 0};
+    mz_poll[1] = (struct pollfd){
+        .fd = in, 
+        .events = POLLIN, 
+        .revents = 0};
+	while(not_finished){
+		msg_t message;
+		int ready = poll(mz_poll, 2, 3000);
+		if(ready > 0){
+			if(mz_poll[0].revents & POLLIN){
+				read(0, message.m, sizeof(message.m));
+				write(out, message.m, sizeof(message.m));
+				//fprintf(stderr, "SEND TO MAIN THREAD");
+			}else if(mz_poll[1].revents & POLLIN){
+				int readed = read(in, &message, sizeof(msg_t));\
+				if(readed > 0){
+				fprintf(stdout, "<%s>: %s", message.id, message.m);
+				}
+			}
+		}
+	}
+	
+	pthread_exit(0);
 }
 
 
 
-void* writer(void* args){
-    (void)args;
-    while(not_finished){
-        pthread_mutex_lock(&mutex);
-        printf("%s : %s", message.id, message.m);
-        memset(&message, 0, BUF_SIZE);
-        pthread_mutex_unlock(&mutex);
-    }
-    pthread_exit(0);
-}
 
-void* reader(void* args){
-    size_t size = 0;
-    (void)args;
-    while(getline(&line, &size, stdin) != -1){
-        strncpy(buffer1, line, BUF_SIZE);
-        free(line);
-        line = NULL;
-        size = 0;
-        send_message();
-    }
-    if(line != NULL){
-        free(line);
-        line = NULL;
-    }
-    pthread_exit(0);
-}
+
 
 void exitfun(void){
     not_finished = 0;
@@ -107,7 +109,8 @@ void signaled(int signo){
     (void)signo;
     exitfun();
 }
-
+struct sockaddr_un unix_addr;
+struct sockaddr_in net_addr;
 
 
 
@@ -125,12 +128,11 @@ int main(int argc, char** argv){
     strncpy(name, argv[1], strlen(argv[1]));
     //type = (argv[2] == 'l' ? 0 : (argv[2] == 'r' ? 1 : handle(0, == 0, "Wrong signature for type of socket \'l\'(local) or \'r\'(remote).", 1)));
     type = argv[2][0];
+    handle(pipe(pipeToServer), == -1, "Can't create pipe", 0);
+    handle(pipe(pipeFromServer), == -1, "Can't create pipe", 0);
+    pthread_t child;
+    handle((errno = pthread_create(&child, NULL, &io_thread, NULL)), >0, "Can't create thread.", 1);
 
-    pthread_t r_child, w_child;
-    handle((errno = pthread_create(&r_child, NULL, &reader, NULL)), >0, "Can't create thread.", 1);
-    handle((errno = pthread_create(&w_child, NULL, &writer, NULL)), >0, "Can't create thread.", 1);
-    struct sockaddr_un unix_addr;
-    struct sockaddr_in net_addr;
 
     // SET SOCKET
     switch(type){
@@ -147,7 +149,7 @@ int main(int argc, char** argv){
             socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
             memset(&net_addr, 0, sizeof(net_addr));
             net_addr.sin_family = AF_INET;
-            net_addr.sin_port = port;
+            net_addr.sin_port = htons(atoi(argv[4]));
             net_addr.sin_addr.s_addr = inet_addr(argv[3]);
             addr = (struct sockaddr*)&net_addr;
             size_addr = sizeof(net_addr);
@@ -155,29 +157,39 @@ int main(int argc, char** argv){
     }
     signal(SIGINT, &signaled);
     atexit(&exitfun);
-
-    struct pollfd mz_poll = (struct pollfd){
+    struct pollfd mz_poll[2];
+    while(not_finished){
+    mz_poll[0] = (struct pollfd){
         .fd = socket_fd, 
         .events = POLLIN, 
         .revents = 0};
-    pthread_mutex_lock(&mutex);
-    while(not_finished){
-        int ready = poll(&mz_poll, 1, 30000);
+    int from = dup(pipeFromServer[1]);
+    int to = dup(pipeToServer[0]);
+    //close(pipeFromServer[0]);
+    //close(pipeToServer[1]);
+    mz_poll[1] = (struct pollfd){
+        .fd = to, 
+        .events = POLLIN, 
+        .revents = 0};
+        int ready = poll(mz_poll, 2, 30000);
         handle(ready, ==-1, "Error on server communication poll.", 0);
-        if(ready != 0){
-            if(mz_poll.revents & POLLIN){
+        if(ready > 0){
+            if(mz_poll[0].revents & POLLIN){
                 handle(recvfrom(socket_fd, &message, sizeof(msg_t), 0, NULL, 0), == -1, "Can't receive message", 1);
-                    pthread_mutex_unlock(&mutex);
-                    pthread_mutex_lock(&mutex);
+                write(from, &message, sizeof(msg_t));
             }
+           if(mz_poll[1].revents & POLLIN){
+		msg_t message;
+		read(to, message.m, sizeof(msg_t));
+		strncpy(message.id, name, sizeof(name));
+		//fprintf(stderr, "SEND TO SERVER: %s, %s", message.id, message.m);
+		handle(sendto(socket_fd, &message, sizeof(msg_t), 0, addr, size_addr), == -1, "Can't receive message", 1);
+           }
         }
     }
-    pthread_mutex_unlock(&mutex);
     void* status;
-    handle((errno = pthread_join(r_child, &status)), >0, "Can't join child",1);
-    r_child = 0;
-    handle((errno = pthread_join(w_child, &status)), >0, "Can't join child",1);
-    w_child = 0;
+    handle((errno = pthread_join(child, &status)), >0, "Can't join child",1);
+    child = 0;
     exitfun();
-	return 0;
+    return 0;
 }

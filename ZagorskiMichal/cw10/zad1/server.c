@@ -51,13 +51,21 @@ int local;
 int global;
 int not_finished = 1;
 
+
+union mz_sockaddr_com{
+    struct sockaddr_un un;
+    struct sockaddr_in ip;
+};
+typedef union mz_sockaddr_com mz_sock;
+
 struct client{
     char id[BUF_SIZE];
     time_t last_access;
     int registred;
     int type;
-    struct sockaddr_un addr;
+    mz_sock addr;
 };
+
 typedef struct client client_t;
 
 
@@ -83,7 +91,7 @@ void signaled(int signo){
 }
 
 void clean_register(int size, time_t current_time);
-void received(msg_t* message, int size, time_t current_time, int type, struct sockaddr_un src);
+void received(msg_t* message, int size, time_t current_time, int type, mz_sock src);
 
 
 int main(int argc, char** argv){
@@ -125,26 +133,27 @@ int main(int argc, char** argv){
         handle(ready, ==-1, "Error on io poll.", 0);
         msg_t message;
         int type = -1;
-        struct sockaddr_un src;
+        mz_sock src;
         socklen_t len;
         if(ready > 0){
             if(mz_poll[0].revents & POLLIN){
                 //UNIX socket
-                handle(recvfrom(mz_poll[0].fd, &message, sizeof(msg_t), 0, (struct sockaddr*)&src, &len), == -1, "Can't receive message unix", 1);
+                handle(recvfrom(mz_poll[0].fd, &message, sizeof(msg_t), 0, (struct sockaddr*)&src.un , &len), == -1, "Can't receive message unix", 1);
+		fprintf(stderr, "UNIX: %s", message.m);
                 type = 0;
             }
             if(mz_poll[1].revents & POLLIN){
                 fprintf(stderr, "Received msg from remote client\n");
-                handle(recvfrom(mz_poll[1].fd,  &message, sizeof(msg_t), 0, (struct sockaddr*)&src, &len), == -1, "Can't receive message ip", 1);
+                handle(recvfrom(mz_poll[1].fd,  &message, sizeof(msg_t), 0, (struct sockaddr*)&src.ip , &len), == -1, "Can't receive message ip", 1);
                 type = 1;
+		fprintf(stderr, "REMOTE: %s", message.m);
             }
             received(&message, CLIENTS, time(NULL), type, src);
-        }
-        counter++;
-        if(counter > 20){
+        }else if(ready == 0 || counter > 20){
             counter = 0;
             clean_register(CLIENTS, time(NULL));
         }
+	counter++;
     }
 
     exitfun();
@@ -164,7 +173,7 @@ void clean_register(int size, time_t current_time){
     }
 }
 
-void received(msg_t* message, int size, time_t current_time, int type, struct sockaddr_un src){
+void received(msg_t* message, int size, time_t current_time, int type, mz_sock src){
     int res = 0;
     for(int i = 0; i < size; i++){
         if(clients[i].registred){
@@ -173,15 +182,14 @@ void received(msg_t* message, int size, time_t current_time, int type, struct so
                 clients[i].last_access = current_time;
                 fprintf(stderr, "Client at %i updated time\n", i);
                 res = 1;
-            }else{
-                int d_type = clients[i].type = type;
-                if(d_type == 0){
-                    //UNIX DESTINATION
-                    handle(sendto(local, message, sizeof(msg_t),0, (struct sockaddr*)&(clients[i].addr), unix_len), == -1, "Can't send message", 0);
-                }else{
-                    handle(sendto(global, message, sizeof(msg_t),0, (struct sockaddr*)&(clients[i].addr), net_len), == -1, "Can't send message", 0);
-                }
             }
+        	int d_type = clients[i].type = type;
+        	if(d_type == 0){
+            		//UNIX DESTINATION
+            		handle(sendto(local, message, sizeof(msg_t),0, (struct sockaddr*)&(clients[i].addr), unix_len), == -1, "Can't send message", 0);
+	        }else{
+	            handle(sendto(global, message, sizeof(msg_t),0, (struct sockaddr*)&(clients[i].addr), net_len), == -1, "Can't send message", 0);
+        	}
         }
     }
     if(res == 0){

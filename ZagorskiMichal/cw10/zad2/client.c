@@ -159,7 +159,7 @@ int main(int argc, char** argv){
             socket_fd = socket(AF_INET, SOCK_STREAM, 0);
             memset(&net_addr, 0, sizeof(net_addr));
             net_addr.sin_family = AF_INET;
-            net_addr.sin_port = port;
+            net_addr.sin_port = htons(atoi(argv[4]));
             int res = inet_pton(AF_INET, argv[3], &net_addr.sin_addr);
             handle(res, <= 0, "Can\'t validate address", 1);
             addr = (struct sockaddr*)&net_addr;

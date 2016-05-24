@@ -74,7 +74,7 @@ void exitfun(void){
     if(global != 0){
         handle(shutdown(global, SHUT_RDWR), == -1, "Can't shudown socket.", 0);
         handle(close(global), == -1, "Can't close socket fd", 0);
-        global = 0
+        global = 0;
     }
 }
 
@@ -190,7 +190,7 @@ void received(time_t current_time, int type, int j){
     if(readed == 0){
         memset(&clients[j], 0, sizeof(client_t));
     }
-    //fprintf(stderr, "%s", message.m);
+    fprintf(stderr, "%s", message.m);
     for(int i = 0; i < CLIENTS; i++){
         if(i != j){
             if(clients[i].fd > 0){
