@@ -85,7 +85,9 @@ void signaled(int signo){
 
 void clean_register(int size, time_t current_time);
 void received(time_t current_time, int type, int src);
-void register_sock(time_t current_time, int type, int src);
+int register_sock(time_t current_time, int type, int src);
+void* wait_for_msg(void* arg);
+
 
 int main(int argc, char** argv){
     handle(argc, != 3, "Wrong amount of arguments: program <port> <socket_path>", 1);
@@ -102,7 +104,7 @@ int main(int argc, char** argv){
     unix_addr.sun_path[UNIX_PATH_MAX-1] = '\0';
     handle((local = socket(AF_UNIX, SOCK_STREAM,0)), == -1, "Can't create socket.",1);
     
-    handle((global = socket(AF_INET, SOCK_STREAM,0)), == -1, "Can't create socket.",1);
+    handle((global = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP)), == -1, "Can't create socket.",1);
     //fprintf(stderr, "local: %d\n", local);
     handle(bind(global, (struct sockaddr*)&net_addr, net_len), == -1, "Can't bind global address.", 1);
     handle(bind(local, (struct sockaddr*)&unix_addr, unix_len), == -1, "Can't bind local unix address.", 1);
@@ -113,9 +115,7 @@ int main(int argc, char** argv){
     handle(listen(global, LISTEN), == -1, "Error in listen operation", 1);
 
     clean_register(CLIENTS, time(NULL));
-    int counter = 0;
-    int max = 0;
-    while(not_finished){
+/*    while(not_finished){
         fd_set set;
         FD_ZERO(&set);
         FD_SET(local, &set);
@@ -156,10 +156,61 @@ int main(int argc, char** argv){
             
         }
         counter++;
-        if(counter > 100){
-            counter = 0;
-            clean_register(CLIENTS, time(NULL));
+    }*/
+    while(not_finished){
+        struct pollfd fds[CLIENTS + 2];
+        int size = 0;
+        fds[0] = (struct pollfd){
+            .fd = global,
+            .events = POLLIN,
+            .revents = 0
+        };
+        fds[1] = (struct pollfd){
+            .fd = local,
+            .events = POLLIN,
+            .revents = 0
+        };
+        size = 2;
+        for(int i = 0; i < CLIENTS; i++){
+            if(clients[i].fd > 0){
+                fds[size] = (struct pollfd){
+                    .fd = clients[i].fd,
+                    .events = POLLIN | POLLHUP,
+                    .revents = 0  
+                };
+                size++;
+            }
         }
+        int ready = poll(fds, size, 20000);
+        if(ready > 0){
+            for(int i = 0; i < 2; i++){
+                if(fds[i].revents & POLLIN){
+                    int accepted = accept(fds[i].fd , NULL, NULL);
+                    int accepted_type = i;
+                    int arg[2] = {accepted, accepted_type};
+                    pthread_t waiter;
+                    pthread_create(&waiter, NULL, &wait_for_msg, (void*)arg);
+                    pthread_detach(waiter);
+                    waiter = 0;
+                }
+            }
+            int removed = 0;
+            for(int i = 2; i < size; i++){
+                if(fds[i].revents & POLLIN){
+                    received(time(NULL), 0, i-2);
+                }
+                if(fds[i].revents & POLLHUP){
+                    fprintf(stderr, "Client %d disconnected\n", clients[i-2].fd);
+                    memcpy(&clients[i-2], &clients[size-2], sizeof(client_t));
+                    removed++;
+                }
+            }
+            for(int index = size-2; index > size-2-removed; index--){
+                 fprintf(stderr, "Removing client %d from index: %d\n", clients[index].fd, index);
+                memset(&clients[index], 0, sizeof(client_t));
+            }
+        }
+        handle(ready == -1, && (errno != EINTR), "Waiting on poll", 1);
     }
     exitfun();
 	return 0;
@@ -187,6 +238,15 @@ void received(time_t current_time, int type, int j){
     memset(&message, 0, sizeof(msg_t));
     int readed = -1;
     handle((readed = read(src, &message, sizeof(msg_t))), == -1, "Can't read message", 1);
+    char* el = (message.m);
+    for(int i = 0; i < BUF_SIZE; i++){
+        if((*el) == '\n' || (*el) == '\0'){
+            memset(++el, 0, BUF_SIZE - i - 2);
+            break;
+        }
+        el++;
+    }
+    fprintf(stderr, "%s:%s", message.id, message.m);
     if(readed == 0){
         memset(&clients[j], 0, sizeof(client_t));
     }
@@ -194,15 +254,16 @@ void received(time_t current_time, int type, int j){
     for(int i = 0; i < CLIENTS; i++){
         if(i != j){
             if(clients[i].fd > 0){
-                //fprintf(stderr, "SENDING... to %d\n", clients[i].fd);
+              //fprintf(stderr, "SENDING... to %d  msg: <%s>: %s \n", clients[i].fd, message.id, message.m);
                handle(write(clients[i].fd, &message, sizeof(msg_t)), == -1, "Can't broadcast message", 0);
             }
         }
     }
 }
 
-void register_sock(time_t current_time, int type, int src){
-    for(int i = 0; i < CLIENTS; i++){
+int register_sock(time_t current_time, int type, int src){
+    int i = -1;
+    for(i = 0; i < CLIENTS; i++){
         if(clients[i].registred == 0){
             clients[i].last_access = current_time;
             clients[i].type = type;
@@ -212,4 +273,35 @@ void register_sock(time_t current_time, int type, int src){
             break;
         }
     }
+    return i;
 }
+
+void* wait_for_msg(void* arg){
+    int* args = (int*)arg;
+    int fd = args[0];
+    int type = args[1];
+    int index = -1;
+     fprintf(stderr, "Request for registration of client %d\n", fd);
+    struct pollfd waited = (struct pollfd){
+        .fd = fd,
+        .events = POLLIN | POLLHUP,
+        .revents = 0
+    };
+    int ready = poll(&waited, 1, 15000);
+    handle(ready == -1, && (errno != EINTR), "Waiting for client failed", 0);
+    if(ready == 0){
+        fprintf(stderr, "Connection timeout\n");
+    }else if(ready > 0){
+        if(waited.revents & POLLHUP){
+            fprintf(stderr, "Client disconnected.\n");
+            pthread_exit(0);
+        }
+        if(waited.revents & POLLIN){
+            index = register_sock(time(NULL), type, fd);
+        }
+    }
+
+    received(time(NULL), type, index);
+    pthread_exit(0);
+}
+

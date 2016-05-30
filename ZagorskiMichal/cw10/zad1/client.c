@@ -83,15 +83,16 @@ void* io_thread(void* io){
                 read(0, message.m, sizeof(message.m));
                 handle(write(out, message.m, sizeof(message.m)), == -1, "Can't send message to main thread", 0);
                 //fprintf(stderr, "SEND TO MAIN THREAD");
-            }else if(mz_poll[1].revents & POLLIN){
+            }if(mz_poll[1].revents & POLLIN){
                 int readed;
                 handle((readed = read(in, &message, sizeof(msg_t))), == -1, "Can't read message", 0);
                 if(readed > 0){
                 fprintf(stdout, "<%s>: %s", message.id, message.m);
                 }
             }
-            if(mz_poll[0].revents & POLLHUP){
+            if(mz_poll[0].revents & POLLHUP || mz_poll[1].revents & POLLHUP){
                 printf("End of client communication. Closed by user.\n");
+                not_finished = 0;
                 pthread_exit(0);
             }
         }
@@ -215,9 +216,11 @@ int main(int argc, char** argv){
                 //fprintf(stderr, "SEND TO SERVER: %s, %s", message.id, message.m);
                 handle(sendto(socket_fd, &message, sizeof(msg_t), 0, addr, size_addr), == -1, "Can't send message to server from main thread.", 1);
            }
+           if(mz_poll[0].revents & POLLHUP || mz_poll[1].revents & POLLHUP ){
+            not_finished = 0;
+           }
         }
     }
-
 
     void* status;
     handle((errno = pthread_join(child, &status)), >0, "Can't join child",1);

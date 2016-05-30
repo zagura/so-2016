@@ -122,7 +122,7 @@ int main(int argc, char** argv){
     
     clean_register(CLIENTS, time(NULL));
     int counter = 0;
-    struct pollfd* mz_poll = calloc(2, sizeof(struct pollfd));
+    struct pollfd mz_poll[2];
     mz_poll[0] = (struct pollfd){ 
         .fd = local , 
         .events = POLLIN, 
@@ -185,7 +185,7 @@ void clean_register(int size, time_t current_time){
 }
 
 void received(msg_t* message, int size, time_t current_time, int type, mz_sock src, socklen_t len){
-    fprintf(stderr, "\n\n RECEIVED CALL:\n %s  :: %s ;; \n", message->id, message->m);
+    //fprintf(stderr, "\n\n RECEIVED CALL:\n %s  :: %s ;; \n", message->id, message->m);
     char* el = (message->m);
     for(int i = 0; i < BUF_SIZE; i++){
         if((*el) == '\n' || (*el) == '\0'){
@@ -194,7 +194,7 @@ void received(msg_t* message, int size, time_t current_time, int type, mz_sock s
         }
         el++;
     }
-    fprintf(stderr, "\n\n After cleanup:\n %s  :: %s ;; \n", message->id, message->m);
+    fprintf(stderr, "%s:%s", message->id, message->m);
     int res = 0;
     for(int i = 0; i < size; i++){
         if(clients[i].registred){
