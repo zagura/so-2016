@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE 700
+#define _GNU_SOURCE
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
@@ -75,16 +75,20 @@ void* io_thread(void* io){
     struct pollfd mz_poll[2];
     mz_poll[0] = (struct pollfd){ 
         .fd = 0, 
-        .events = POLLIN | POLLHUP, 
+        .events = POLLIN | POLLRDHUP, 
         .revents = 0};
     mz_poll[1] = (struct pollfd){
         .fd = in, 
-        .events = POLLIN | POLLHUP, 
+        .events = POLLIN | POLLRDHUP, 
         .revents = 0};
     while(not_finished){
         msg_t message;
         int ready = poll(mz_poll, 2, 3000);
         if(ready > 0){
+            if(mz_poll[0].revents & POLLRDHUP){
+                printf("End of client communication. Closed by user.\n");
+                pthread_exit(0);
+            }
             if(mz_poll[0].revents & POLLIN){
                 read(0, message.m, sizeof(message.m));
                 handle(write(out, message.m, sizeof(message.m)), == -1, "Can't send message to main thread", 0);
@@ -96,10 +100,7 @@ void* io_thread(void* io){
                 fprintf(stdout, "<%s>: %s", message.id, message.m);
                 }
             }
-            if(mz_poll[0].revents & POLLHUP){
-                printf("End of client communication. Closed by user.\n");
-                pthread_exit(0);
-            }
+
         }
         handle(ready == -1, && (errno != EINTR) , "Error in poll", 0);
     }
@@ -119,6 +120,18 @@ void exitfun(void){
     handle(close(socket_fd), == -1, "Can't close socket fd", 1);
     socket_fd = 0;
     handle(errno, >0, "Error: ",1);
+    if(pipeToServer[0] != 0){
+        close(pipeToServer[0]);
+    }
+    if(pipeToServer[1] != 0){
+        close(pipeToServer[1]);
+    }
+    if(pipeFromServer[0] != 0){
+        close(pipeFromServer[0]);
+    }
+    if(pipeFromServer[1] != 0){
+        close(pipeFromServer[1]);
+    }
 }
 
 void signaled(int signo){
@@ -186,7 +199,7 @@ int main(int argc, char** argv){
     struct pollfd mz_poll[2];
     mz_poll[0] = (struct pollfd){
         .fd = socket_fd, 
-        .events = POLLIN, 
+        .events = POLLIN | POLLRDHUP, 
         .revents = 0};
     mz_poll[1] = (struct pollfd){
         .fd = to, 
@@ -196,6 +209,9 @@ int main(int argc, char** argv){
         int ready = poll(mz_poll, 2, 30000);
         handle(ready == -1, && errno != EINTR , "Error on server communication poll.", 0);
         if(ready > 0){
+            if(mz_poll[0].revents & POLLRDHUP){
+                not_finished = 0;    
+           }
             if(mz_poll[0].revents & POLLIN){
                 int readed = -1;
                 handle((readed = read(socket_fd, &message, sizeof(msg_t))), == -1, "Can't receive message", 1);
@@ -209,6 +225,7 @@ int main(int argc, char** argv){
                 //fprintf(stderr, "SEND TO SERVER: %s, %s", message.id, message.m);
                 handle(write(socket_fd, &message, sizeof(msg_t)), == -1, "Can't send message to server from main thread.", 1);
            }
+
         }
     }
     void* status;

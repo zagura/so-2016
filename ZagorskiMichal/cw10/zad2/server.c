@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE 700
+#define _GNU_SOURCE
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
@@ -65,6 +65,13 @@ typedef struct client client_t;
 client_t clients[CLIENTS];
 void exitfun(void){
     not_finished = 0;
+    for(int i = 0; i < CLIENTS; i++){
+        if(clients[i].registred){
+        handle(shutdown(clients[i].fd, SHUT_RDWR), == -1, "Can't shutdown client's socket.", 0);
+        handle(close(clients[i].fd), == -1, "Can't close socket.", 0);
+    }
+    }
+                
     if(local != 0){
         handle(shutdown(local, SHUT_RDWR), == -1, "Can't shudown socket.", 1);
         handle(close(local), == -1, "Can't close socket fd", 0);
@@ -84,10 +91,9 @@ void signaled(int signo){
     exitfun();
 }
 
-void clean_register(int size, time_t current_time);
+int clean_register(time_t current_time, int size);
 void received(time_t current_time, int type, int src);
 int register_sock(time_t current_time, int type, int src);
-void* wait_for_msg(void* arg);
 
 
 int main(int argc, char** argv){
@@ -106,6 +112,7 @@ int main(int argc, char** argv){
     handle((local = socket(AF_UNIX, SOCK_STREAM,0)), == -1, "Can't create socket.",1);
     
     handle((global = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP)), == -1, "Can't create socket.",1);
+    handle(setsockopt(global, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)), == -1, "Can't set reusable address.", 0);
     //fprintf(stderr, "local: %d\n", local);
     handle(bind(global, (struct sockaddr*)&net_addr, net_len), == -1, "Can't bind global address.", 1);
     handle(bind(local, (struct sockaddr*)&unix_addr, unix_len), == -1, "Can't bind local unix address.", 1);
@@ -176,25 +183,21 @@ int main(int argc, char** argv){
             if(clients[i].fd > 0){
                 fds[size] = (struct pollfd){
                     .fd = clients[i].fd,
-                    .events = POLLIN | POLLHUP,
+                    .events = POLLIN | POLLRDHUP,
                     .revents = 0  
                 };
                 size++;
             }
         }
+        int added = 0;
         int ready = poll(fds, size, 5000);
         if(ready > 0){
             for(int i = 0; i < 2; i++){
                 if(fds[i].revents & POLLIN){
                     int accepted = accept(fds[i].fd , NULL, NULL);
                     int accepted_type = i;
-                    int arg[2] = {accepted, accepted_type};
                     fprintf(stderr, "Request for registration of client %d\n", accepted);
-                    index = register_sock(time(NULL), type, fd);
-                    pthread_t waiter;
-                    pthread_create(&waiter, NULL, &wait_for_msg, (void*)arg);
-                    pthread_detach(waiter);
-                    waiter = 0;
+                    added += register_sock(time(NULL), accepted_type, accepted);
                 }
             }
             int removed = 0;
@@ -202,35 +205,43 @@ int main(int argc, char** argv){
                 if(fds[i].revents & POLLIN){
                     received(time(NULL), 0, i-2);
                 }
-                if(fds[i].revents & POLLHUP){
+                if(fds[i].revents & POLLRDHUP){
                     fprintf(stderr, "Client %d disconnected\n", clients[i-2].fd);
-                    memcpy(&clients[i-2], &clients[size-2], sizeof(client_t));
+                    close(fds[i].fd);
+                    memcpy(&clients[i-2], &clients[size-3+added], sizeof(client_t));
                     removed++;
                 }
             }
-            for(int index = size-2; index > size-2-removed; index--){
+
+            for(int index = size-2+added; index > size-2-removed+added; index--){
                  fprintf(stderr, "Removing client %d from index: %d\n", clients[index].fd, index);
                 memset(&clients[index], 0, sizeof(client_t));
             }
         }
+        size+=added;
         handle(ready == -1, && (errno != EINTR), "Waiting on poll", 1);
-        clean(time(NULL));
+        size = clean_register(time(NULL), size - 2);
     }
     exitfun();
 	return 0;
 }
 
 
-void clean_register(int size, time_t current_time){
-    for(int i = 0; i < size; i++){
-        if(clients[i].registred){
+int clean_register(time_t current_time, int size){
+    for(int i = 0; i < CLIENTS; i++){
+        if(clients[i].registred && (clients[i].confirmed == 0)){
             time_t last_access = clients[i].last_access;
             if((current_time - last_access) >= 10){
                 fprintf(stderr, "Timeout client %d from index: %d\n", clients[i].fd, i);
-                memset(&clients[i], 0, sizeof(client_t));
+                handle(shutdown(clients[i].fd, SHUT_RDWR), == -1, "Can't shutdown client's socket.", 0);
+                handle(close(clients[i].fd), == -1, "Can't close socket.", 0);
+                size--;
+                memcpy(&clients[i], &clients[size], sizeof(client_t));
+                memset(&clients[size], 0, sizeof(client_t));
             }
         }
     }
+    return size;
 }
 
 void received(time_t current_time, int type, int j){
@@ -258,7 +269,7 @@ void received(time_t current_time, int type, int j){
     fprintf(stderr, "%s", message.m);
     for(int i = 0; i < CLIENTS; i++){
         if(i != j){
-            if(clients[i].fd > 0){
+            if((clients[i].fd > 0) && (clients[i].confirmed > 0)){
               //fprintf(stderr, "SENDING... to %d  msg: <%s>: %s \n", clients[i].fd, message.id, message.m);
                handle(write(clients[i].fd, &message, sizeof(msg_t)), == -1, "Can't broadcast message", 0);
             }
@@ -274,11 +285,12 @@ int register_sock(time_t current_time, int type, int src){
             clients[i].type = type;
             clients[i].fd = src;
             clients[i].registred = 1;
+            clients[i].confirmed = 0;
             fprintf(stderr, "Registration of client %d at %d\n", src , i);
             break;
         }
     }
-    return i;
+    return 1;
 }
 
 
