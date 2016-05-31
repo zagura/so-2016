@@ -57,6 +57,7 @@ struct client{
     int registred;
     int type;
     int fd;
+    int confirmed;
 };
 typedef struct client client_t;
 
@@ -181,13 +182,15 @@ int main(int argc, char** argv){
                 size++;
             }
         }
-        int ready = poll(fds, size, 20000);
+        int ready = poll(fds, size, 5000);
         if(ready > 0){
             for(int i = 0; i < 2; i++){
                 if(fds[i].revents & POLLIN){
                     int accepted = accept(fds[i].fd , NULL, NULL);
                     int accepted_type = i;
                     int arg[2] = {accepted, accepted_type};
+                    fprintf(stderr, "Request for registration of client %d\n", accepted);
+                    index = register_sock(time(NULL), type, fd);
                     pthread_t waiter;
                     pthread_create(&waiter, NULL, &wait_for_msg, (void*)arg);
                     pthread_detach(waiter);
@@ -211,6 +214,7 @@ int main(int argc, char** argv){
             }
         }
         handle(ready == -1, && (errno != EINTR), "Waiting on poll", 1);
+        clean(time(NULL));
     }
     exitfun();
 	return 0;
@@ -222,7 +226,7 @@ void clean_register(int size, time_t current_time){
         if(clients[i].registred){
             time_t last_access = clients[i].last_access;
             if((current_time - last_access) >= 10){
-                fprintf(stderr, "Removing client %d from index: %d\n", clients[i].fd, i);
+                fprintf(stderr, "Timeout client %d from index: %d\n", clients[i].fd, i);
                 memset(&clients[i], 0, sizeof(client_t));
             }
         }
@@ -234,6 +238,7 @@ void received(time_t current_time, int type, int j){
     msg_t message;
     clients[j].last_access = current_time;
     clients[j].registred = 1;
+    clients[j].confirmed = 1;
     int src =  clients[j].fd;
     memset(&message, 0, sizeof(msg_t));
     int readed = -1;
@@ -276,32 +281,5 @@ int register_sock(time_t current_time, int type, int src){
     return i;
 }
 
-void* wait_for_msg(void* arg){
-    int* args = (int*)arg;
-    int fd = args[0];
-    int type = args[1];
-    int index = -1;
-     fprintf(stderr, "Request for registration of client %d\n", fd);
-    struct pollfd waited = (struct pollfd){
-        .fd = fd,
-        .events = POLLIN | POLLHUP,
-        .revents = 0
-    };
-    int ready = poll(&waited, 1, 15000);
-    handle(ready == -1, && (errno != EINTR), "Waiting for client failed", 0);
-    if(ready == 0){
-        fprintf(stderr, "Connection timeout\n");
-    }else if(ready > 0){
-        if(waited.revents & POLLHUP){
-            fprintf(stderr, "Client disconnected.\n");
-            pthread_exit(0);
-        }
-        if(waited.revents & POLLIN){
-            index = register_sock(time(NULL), type, fd);
-        }
-    }
 
-    received(time(NULL), type, index);
-    pthread_exit(0);
-}
 
