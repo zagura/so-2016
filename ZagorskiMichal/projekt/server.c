@@ -164,10 +164,10 @@ int main(int argc, char** argv){
     signal(SIGINT, &signaled);
     atexit(&exitfun);
     handle(listen(global, LISTEN), == -1, "Error in listen operation", 1);
-    //daemon(0,0);
+    daemon(0,0);
     not_finished = 10;
-   // int err_fd = open("/var/log/service_manager", 0744 | O_CREAT | O_RDWR);
-//    dup2(err_fd, STDERR_FILENO);
+    int err_fd = open("/var/log/service_manager", 0744 | O_CREAT | O_RDWR);
+    dup2(err_fd, STDERR_FILENO);
     while(not_finished){
         struct pollfd fds[1];
         int size = 0;
