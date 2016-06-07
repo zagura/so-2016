@@ -40,6 +40,7 @@
 char path[BUF_SIZE];
 char* full_command = NULL;
 int port = 0;
+int fd = -1;
 struct connection{
     char arguments[1024];
     int interval_s;
@@ -72,14 +73,41 @@ void signaled(int signo){
 }
 
 void alarmed(int signo){
+    handle(0, == 0, "Alarmed function call", 0);
     if(signo == SIGALRM){
         if(full_command == NULL){
             exit(0);
         }
-        FILE* pipe = popen(full_command, "r");
-        handle(pipe, == NULL, "Can't open process", 0);
+        FILE* p_file = popen(full_command, "r");
+        handle(p_file, == NULL, "Can't open process", 0);
+        char* line = NULL;
+        char buffer[4096];
+        size_t size;
+        while(getline(&line, &size, p_file) != -1){
+             int len = strlen(line);
+             if(line[len-1] == '\n'){
+                line[len-1] = '\0';
+             }
+             memset(buffer, 0, sizeof(buffer));
+             strncpy(buffer, line, len);
+             free(line);
+             line = NULL;
+             size = 0;
+             handle(write(STDOUT_FILENO, buffer, sizeof(buffer)), == -1, "Can't pipe the output.", 0);
+        }
+        if(line != NULL){
+            free(line);
+            line = NULL;
+            size = 0;
+        }
         if(alarmtime > 0){
-            alarm(alarmtime);
+            int res = alarm(alarmtime);
+            handle(0, == 0, "signal branch", 0);
+            handle(res, == 0, "Send alarm signal", 0);
+        }else{
+             sleep(1);
+             handle(shutdown(STDOUT_FILENO, SHUT_RDWR), == -1, "Can't shutdown client's socket.", 0);
+             handle(close(STDOUT_FILENO), == -1, "Can't close socket.", 0);
         }
     }
 }
@@ -95,14 +123,16 @@ void* fork_service(void* args){
     memset(&params, 0, sizeof(connection_t));
     int ready = poll(&mz_poll, 1, 10000);
     if(ready > 0){
-        handle(read(fd, &params, sizeof(connection_t)), == -1, "can't receive receipe for service", 0);
+        handle(read(fd, &params, sizeof(connection_t)), == -1, "can't receive configuration for service", 0);
     }
+    else pthread_exit(0);
     pid_t child_pid; 
     handle((child_pid = fork()), == -1, "Can;t fork new process", 0);
     if(child_pid > 0){
         pthread_exit(0);
     }else if(child_pid == 0){
-        handle(dup2(fd, STDOUT_FILENO), == -1, "Can't write to sockcet beacuse of dup2 function", 0);
+        //handle(0, == 0, "DEBUG", 0);
+        handle(dup2(fd, STDOUT_FILENO), == -1, "Can't write to socket because of dup2 function", 0);
         struct sigaction sa;
         sa.sa_handler = &alarmed;
         sa.sa_flags = 0;
@@ -135,9 +165,9 @@ int main(int argc, char** argv){
     atexit(&exitfun);
     handle(listen(global, LISTEN), == -1, "Error in listen operation", 1);
     //daemon(0,0);
-    not_finished = 3;
+    not_finished = 10;
    // int err_fd = open("/var/log/service_manager", 0744 | O_CREAT | O_RDWR);
-    dup2(err_fd, STDERR_FILENO);
+//    dup2(err_fd, STDERR_FILENO);
     while(not_finished){
         struct pollfd fds[1];
         int size = 0;
@@ -149,13 +179,18 @@ int main(int argc, char** argv){
         size = 1;
         int ready = poll(fds, size, 50000);
         if(ready > 0){
-            for(int i = 0; i < 2; i++){
+            for(int i = 0; i < 1; i++){
+                if(fds[i].revents & POLLRDHUP){
+                    not_finished = 0;
+                }
+            
                 if(fds[i].revents & POLLIN){
                     int accepted = accept(fds[i].fd , NULL, NULL);
                     pthread_t thread;
-                    handle((errno = pthread_create(&thread, NULL, &fork_service, &accepted)), > 0, "Can't create threa", 0);
+                    handle((errno = pthread_create(&thread, NULL, &fork_service, &accepted)), > 0, "Can't create thread", 1);
                     handle((errno = pthread_detach(thread)), >0, "Can't detach thread", 0)
                 }
+
             }
         }
         handle(ready == -1, && (errno != EINTR), "Waiting on poll", 1);

@@ -95,8 +95,8 @@ void* io_thread(void* io){
                         }
                         fprintf(stdout, "\n\nTime: %s : \n", timed);
                     }
-                    fprintf(stdout, "%s", message);
-                    curr_time = time(NULL);
+                    fprintf(stdout, "%s\n", message);
+                    last_time = time(NULL);
                 }
             }
             if(mz_poll[0].revents & POLLRDHUP || mz_poll[1].revents & POLLRDHUP){
