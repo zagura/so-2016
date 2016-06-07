@@ -73,7 +73,7 @@ void signaled(int signo){
 }
 
 void alarmed(int signo){
-    handle(0, == 0, "Alarmed function call", 0);
+    errno = 0;
     if(signo == SIGALRM){
         if(full_command == NULL){
             exit(0);
@@ -84,16 +84,29 @@ void alarmed(int signo){
         char buffer[4096];
         size_t size;
         while(getline(&line, &size, p_file) != -1){
-             int len = strlen(line);
-             if(line[len-1] == '\n'){
-                line[len-1] = '\0';
-             }
-             memset(buffer, 0, sizeof(buffer));
-             strncpy(buffer, line, len);
-             free(line);
-             line = NULL;
-             size = 0;
-             handle(write(STDOUT_FILENO, buffer, sizeof(buffer)), == -1, "Can't pipe the output.", 0);
+            int len = strlen(line);
+            if(line[len-1] == '\n'){
+            line[len-1] = '\0';
+            }
+            memset(buffer, 0, sizeof(buffer));
+            strncpy(buffer, line, len);
+            free(line);
+            line = NULL;
+            size = 0;
+            struct pollfd fds[1];
+            fds[0] = (struct pollfd){
+                .fd = STDOUT_FILENO,
+                .events = POLLIN | POLLRDHUP,
+                .revents = 0
+            };
+            int ready = poll(fds, 1, 2);
+            if(ready > 0){
+                if(fds[0].revents & POLLRDHUP){
+                    handle(close(STDOUT_FILENO), == -1, "Can't close socket.", 0);
+                    _exit(1);
+                }
+            }
+            handle(write(STDOUT_FILENO, buffer, sizeof(buffer)), == -1, "Can't pipe the output.", 0);
         }
         if(line != NULL){
             free(line);
@@ -111,7 +124,7 @@ void alarmed(int signo){
         }
     }
 }
-void parse_command(connection_t* cmd);
+int parse_command(connection_t* cmd);
 void* fork_service(void* args){
     int fd = *(int*)args;
     struct pollfd mz_poll = (struct pollfd){
@@ -129,6 +142,8 @@ void* fork_service(void* args){
     pid_t child_pid; 
     handle((child_pid = fork()), == -1, "Can;t fork new process", 0);
     if(child_pid > 0){
+        int status;
+        wait(&status);
         pthread_exit(0);
     }else if(child_pid == 0){
         //handle(0, == 0, "DEBUG", 0);
@@ -140,9 +155,17 @@ void* fork_service(void* args){
             perror("Mask set");
         }
         sigdelset(&(sa.sa_mask), SIGALRM);
-        parse_command(&params);
+        int pc = parse_command(&params);
+        if(pc == -1){
+             handle(shutdown(STDOUT_FILENO, SHUT_RDWR), == -1, "Can't shutdown client's socket.", 0);
+             handle(close(STDOUT_FILENO), == -1, "Can't close socket.", 0);
+             _exit(1);
+        }
         handle(sigaction(SIGALRM, &sa, NULL), == -1, "Can't set signal handler", 0);
         alarmed(SIGALRM);
+        for(;;){
+            pause();
+        }
     }
     pthread_exit(0);
 }
@@ -164,7 +187,7 @@ int main(int argc, char** argv){
     signal(SIGINT, &signaled);
     atexit(&exitfun);
     handle(listen(global, LISTEN), == -1, "Error in listen operation", 1);
-    daemon(0,0);
+    //daemon(0,0);
     not_finished = 10;
     int err_fd = open("/var/log/service_manager", 0744 | O_CREAT | O_RDWR);
     dup2(err_fd, STDERR_FILENO);
@@ -177,13 +200,12 @@ int main(int argc, char** argv){
             .revents = 0
         };
         size = 1;
-        int ready = poll(fds, size, 50000);
+        int ready = poll(fds, size, 5000);
         if(ready > 0){
             for(int i = 0; i < 1; i++){
                 if(fds[i].revents & POLLRDHUP){
                     not_finished = 0;
                 }
-            
                 if(fds[i].revents & POLLIN){
                     int accepted = accept(fds[i].fd , NULL, NULL);
                     pthread_t thread;
@@ -201,7 +223,7 @@ int main(int argc, char** argv){
 }
 
 
-void parse_command(connection_t* cmd){
+int parse_command(connection_t* cmd){
     int len = strlen(cmd->command);
     char w_command[] ="w";
     char ifconfig[] = "ifconfig";
@@ -233,6 +255,7 @@ void parse_command(connection_t* cmd){
     if(full_command[len -1] == '\n'){
         full_command[(len-1)] = ' ';
     }
+    if(flag == 0) return -1;
     if(flag & 020){
         full_command[len] = ' ';
         strncpy(&(full_command[len]), cmd->arguments, args_len);
@@ -244,5 +267,5 @@ void parse_command(connection_t* cmd){
     if(flag & 045){
         alarmtime = cmd->interval_s;
     }
-    return;
+    return 0;
 }
