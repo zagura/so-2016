@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html  dir="ltr" lang="pl" xml:lang="pl">
+<head>
+    <title>Zadanie - Zestaw 6 - Kolejki komunikatów IPC</title>
+    <link rel="shortcut icon" href="http://upel.agh.edu.pl/wiet/theme/image.php/centrumelearningu/theme/1472209029/favicon" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="keywords" content="moodle, Zadanie" />
+<link rel="stylesheet" type="text/css" href="http://upel.agh.edu.pl/wiet/theme/yui_combo.php?rollup/3.17.2/yui-moodlesimple-min.css" /><script id="firstthemesheet" type="text/css">/** Required in order to fix style inclusion problems in IE with YUI **/</script><link rel="stylesheet" type="text/css" href="http://upel.agh.edu.pl/wiet/theme/styles.php/centrumelearningu/1472209029/all" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300&amp;subset=latin,cyrillic-ext,greek-ext,greek,vietnamese,latin-ext,cyrillic' rel='stylesheet' type='text/css'>    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />	
+
+
+	
+	</head>
+
+<body  id="page-mod-assign-view" class="format-weeks  path-mod path-mod-assign gecko dir-ltr lang-pl yui-skin-sam yui3-skin-sam upel-agh-edu-pl--wiet pagelayout-incourse course-279 context-21959 cmid-7476 category-2 has-region-side-pre used-region-side-pre has-region-side-post empty-region-side-post side-pre-only">
+
+<div id="page" class="container-fluid">
+    <header id="page-header" class="clearfix"><div class="page-context-header"><div class="page-header-headings"><h1>Systemy operacyjne 2015/2016</h1></div></div>
+    </header>    <div id="page-content" class="row-fluid">
+        <div id="region-main-box" class="span9">
+            <div class="row-fluid">
+                <section id="region-main" class="span8 pull-left">
+                    <span class="notifications" id="user-notifications"></span><div role="main"><span id="maincontent"></span><h2>Zadania - Zestaw 6</h2><div id="intro" class="box generalbox boxaligncenter"><div class="no-overflow"><div id="intro" class="box generalbox boxaligncenter">
+<div id="yui_3_17_2_2_1429568929774_767" class="no-overflow">
+<h2 style="text-align: left;" id="yui_3_17_2_2_1429568929774_766">IPC - kolejki komunikatów</h2>
+<p><strong>Przydatne funkcje:</strong></p>
+<p>System V:</p>
+<pre>&lt;sys/msg.h&gt; &lt;sys/ipc.h&gt; - msgget, msgctl, msgsnd, msgrcv, ftok</pre>
+<p>POSIX:</p>
+<pre>&lt;mqueue.h&gt; - mq_open, mq_send, mq_receive, mq_getattr, mq_setattr, mq_close, mq_unlink, mq_notify</pre>
+<h2 style="margin-bottom: 0cm; text-align: left;">Zadanie 1. System V</h2>
+<p style="margin-bottom: 0cm; text-align: left;"></p>
+<p style="margin-bottom: 0cm;">Celem zadania jest napisanie prostego programu typu klient-serwer, w którym komunikacja zrealizowana jest za pomocą kolejek komunikatów.</p>
+<p style="margin-bottom: 0cm;"></p>
+<p style="margin-bottom: 0cm;">Serwer po uruchomieniu tworzy nową kolejkę komunikatów systemu V. Za pomocą tej kolejki klienci będą wysyłać komunikaty do serwera. Ścieżkę oraz <span style="font-family: courier new,courier,monospace;">id</span> identyfikujące kolejkę (patrz funkcja <span style="font-family: courier new,courier,monospace;">ftok</span>) serwer otrzymuje w argumentach wywołania. Klient bezpośrednio po uruchomieniu tworzy kolejkę z unikalnym kluczem <span style="font-family: courier new,courier,monospace;">IPC</span> (patrz <span style="font-family: courier new,courier,monospace;">IPC_PRIVATE</span>) i wysyła jej klucz komunikatem do serwera (ścieżkę i <span style="font-family: courier new,courier,monospace;">id</span> kolejki serwera klient otrzymuje w argumentach wywołania). Po otrzymaniu takiego komunikatu, serwer otwiera kolejkę klienta, przydziela klientowi identyfikator (np. numer w kolejności zgłoszeń) i odsyła ten identyfikator do klienta (komunikacja w kierunku <span style="font-family: courier new,courier,monospace;">serwer-&gt;klient</span> odbywa się za pomocą kolejki klienta). Po otrzymaniu identyfikatora klient rozpoczyna wykonywanie zadań zleconych przez serwer (w pętli). Wykonanie pojedynczego zadania przebiega następująco:</p>
+<ul>
+<li>
+<p style="margin-bottom: 0cm;">klient wysyła serwerowi komunikat oznaczający gotowość do przyjęcia nowego zadania; w treści komunikatu klient umieszcza swój identyfikator,</p>
+</li>
+<li>
+<p style="margin-bottom: 0cm;">serwer odsyła klientowi komunikat zawierający losową liczbę całkowitą większą od zera,</p>
+</li>
+<li>
+<p style="margin-bottom: 0cm;">klient sprawdza czy otrzymana liczba jest pierwsza (można użyć dowolnego algorytm sprawdzającego czy liczba jest pierwsza),</p>
+</li>
+<li>
+<p style="margin-bottom: 0cm;">klient wysyła serwerowi komunikat zawierający jego identyfikator, sprawdzoną liczbę oraz informację, czy jest to liczba pierwsza. Jeśli liczba jest pierwsza serwer wypisuje na standardowe wyjście komunikat postaci: <span style="font-family: courier new,courier,monospace;">Liczba pierwsza: X (klient: Y)</span>, gdzie <span style="font-family: courier new,courier,monospace;">X</span> to sprawdzona liczba a <span style="font-family: courier new,courier,monospace;">Y</span> to identyfikator klienta.</p>
+</li>
+</ul>
+<p style="margin-bottom: 0cm;">Poszczególne rodzaje komunikatów należy identyfikować za pomocą typów komunikatów systemu V. Klient i serwer należy napisać w postaci osobnych programów (nie korzystamy z funkcji <span style="font-family: courier new,courier,monospace;">fork</span>). Serwer musi być w stanie pracować z wieloma klientami naraz. Przed zakończeniem pracy każdy proces powinien usunąć kolejkę którą utworzył (patrz <span style="font-family: courier new,courier,monospace;">IPC_RMID</span> oraz funkcja <span style="font-family: courier new,courier,monospace;">atexit</span>). Dla uproszczenia można przyjąć, że serwer przechowuje informacje o klientach w statycznej tablicy (rozmiar tablicy ogranicza liczbę klientów, którzy mogą się zgłosić do serwera).</p>
+<br style="margin-bottom: 0cm; text-align: left;" />
+<h2 style="text-align: left;">Zadanie 2. POSIX</h2>
+<p style="margin-bottom: 0cm;">Zrealizuj zadanie alogiczne do Zadania 1 wykorzystując kolejki komunikatów <span style="font-family: courier new,courier,monospace;">POSIX</span>.</p>
+<p style="margin-bottom: 0cm;">Kolejka klienta powinna mieć losową nazwę zgodną z wymaganiami stawianymi przez <span style="font-family: courier new,courier,monospace;">POSIX</span>. Na typ komunikatu można zarezerwować pierwszy bajt jego treści. Przed zakończeniem pracy klient wysyła do serwera komunikat informujący, że serwer powinien zamknąć po swojej stronie kolejkę klienta. Następnie klient zamyka i usuwa swoją kolejkę. Serwer przed zakończeniem pracy zamyka wszystkie otwarte kolejki i usuwa kolejkę, którą utworzył.</p>
+</div>
+</div>
+</div></div></div>
+</section>           
+</div></div></div></div>
+
+</body>
+</html>
