@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html  dir="ltr" lang="pl" xml:lang="pl">
+<head>
+    <title>Zadanie - Zestaw 10 - Sokety</title>
+    <link rel="shortcut icon" href="http://upel.agh.edu.pl/wiet/theme/image.php/centrumelearningu/theme/1472209029/favicon" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="keywords" content="moodle, Zadanie" />
+<link rel="stylesheet" type="text/css" href="http://upel.agh.edu.pl/wiet/theme/yui_combo.php?rollup/3.17.2/yui-moodlesimple-min.css" /><script id="firstthemesheet" type="text/css">/** Required in order to fix style inclusion problems in IE with YUI **/</script><link rel="stylesheet" type="text/css" href="http://upel.agh.edu.pl/wiet/theme/styles.php/centrumelearningu/1472209029/all" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300&amp;subset=latin,cyrillic-ext,greek-ext,greek,vietnamese,latin-ext,cyrillic' rel='stylesheet' type='text/css'>    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />	
+
+	</head>
+
+<body  id="page-mod-assign-view" class="format-weeks  path-mod path-mod-assign gecko dir-ltr lang-pl yui-skin-sam yui3-skin-sam upel-agh-edu-pl--wiet pagelayout-incourse course-279 context-21966 cmid-7483 category-2 has-region-side-pre used-region-side-pre has-region-side-post empty-region-side-post side-pre-only">
+
+
+<div id="page" class="container-fluid">
+    <header id="page-header" class="clearfix"><div class="page-context-header"><div class="page-header-headings"><h1>Systemy operacyjne 2015/2016</h1></div></div></header>    <div id="page-content" class="row-fluid">
+        <div id="region-main-box" class="span9">
+            <div class="row-fluid">
+                <section id="region-main" class="span8 pull-left">
+                    <span class="notifications" id="user-notifications"></span><div role="main"><span id="maincontent"></span><h2>Zadania - Zestaw 10</h2><div id="intro" class="box generalbox boxaligncenter"><div class="no-overflow"><div class="box generalbox boxaligncenter">Celem zadania jest napisanie prostego komunikatora w architekturze klient/serwer. Bezpośrednio po uruchomieniu klient tworzy nowy wątek, który powinien obsługiwać wejście/wyście z klawiatury. Wątek główny obsługuje natomiast komunikację z serwerem. Po wczytaniu wiadomości z klawiatury klient wysyła ją do serwera. Wraz z wiadomością klient wysyła również identyfikator użytkownika nadającego wiadomość. Po otrzymaniu wiadomości od klienta serwer rozsyła ją do wszystkich pozostałych klientów. Po otrzymaniu wiadomości od serwera klient wypisuje na ekranie identyfikator użytkownika, który ją wysłał oraz treść wiadomości. Zakładamy, że wiadomościami w systemie są napisy zakończone znakiem nowej linii. Można przyjąć górne ograniczenie na długość napisu (na przykład 256 znaków). W przypadku, gdy klient jest uruchomiony na tym samym komputerze co serwer, komunikacja powinna być prowadzona za pomocą soketu z dziedziny Unixa. Klienci uruchomieni na innych komputerach komunikują się z serwerem soketem z dziedziny Internet. Serwer powinien być napisany jako aplikacja jednowątkowa/jednoprocesowa i obsługiwać równocześnie sokety z obu dziedzin.<br /><br />Należy zadbać, aby zarówno serwer jak i klient nie zużywały więcej zasobów (np. CPU) niż jest to konieczne. Ponadto, komunikacja w systemie powinna być w pełni asynchroniczna. Niedopuszczalne jest więc rozwiązanie, w którym klient wykonuje operacje nieblokujące w sposób zużywający nadmiernie czas procesora. Niedopuszczalne jest również ograniczenie zużycia CPU poprzez zasypianie (np. funkcją sleep) serwera lub klienta - rozwiązanie to nie jest w pełni asynchroniczne. Prawidłowa implementacja zadania powinna wykorzystywać funkcje z rodziny <span style="font-family: courier new,courier,monospace;">select</span>/<span style="font-family: courier new,courier,monospace;">poll</span>. W kliencie można dodatkowo wykorzystać sygnały do komunikacji zdarzeń pomiędzy wątkami.<br /><br />Klient przyjmuje następujące argumenty wywołania:
+<p style="text-align: left;" class="no-overflow"></p>
+<ul>
+<li>identyfikator użytkownika (napis alfanumeryczny),</li>
+<li>typ serwera: lokalny lub zdalny,</li>
+<li>w przypadku serwera zdalnego: adres IP oraz port serwera,</li>
+<li>w przypadku serwera lokalnego: ścieżkę w systemie plików do soketu serwera.</li>
+</ul>
+Serwer przyjmuje w argumentach wywołania numer portu sieciowego oraz ścieżkę w systemie plików do soketu z dziedziny Unix.<br /><br />Komunikator należy zaimplementować w dwóch wymienionych poniżej wariantach.<br /><br />
+<h2 style="text-align: left;" class="no-overflow">Zadanie 1</h2>
+<p style="text-align: left;" class="no-overflow">Klienci i serwer używają protokołu datagramowego a komunikacja jest bezpołączeniowa. Serwer używa dokładnie jednego soketu z dziedziny Unix oraz dokładnie jednego soketu z dziedziny Internet. Serwer rejestruje nowego klienta gdy otrzyma od niego pierwszy komunikat do rozesłania. Rejestracja jest ważna przez określony okres czasu (np. 30 sekund) i jest automatycznie odnawiana gdy klient wyśle serwerowi kolejny komunikat. Serwer powinien co pewien czas sprawdzać listę klientów i usuwać z niej klientów, których okres rejestracji wygasł.</p>
+<p style="text-align: left;" class="no-overflow"></p>
+<h2 style="text-align: left;" class="no-overflow">Zadanie 2</h2>
+<p style="text-align: left;" class="no-overflow">Klienci i serwer używają protokołu strumieniowego i komunikacji połączeniowej. Klient rejestruje się w serwerze poprzez nawiązanie z nim połączenia. Jeśli w określonym czasie od nawiązania połączenia (np. 30 sekund) klient nie wyśle żadnego komunikatu, serwer zamyka połączenie z nim i usuwa go z listy klientów.</p>
+</div></div></div></div></section></div></div></div></div>
+</html>
