@@ -1,0 +1,28 @@
+a)
+	1. Wszystkie sygnały działają na wszystkie wątki procesu, komunikaty są wypisywane. SIGSTOP zatrzymuje wszystkie wątki.
+	2. Pozostałe wątki mają puste maski sygnałów, SIGKILL powoduje wyświetlenie komunikatu, SIGSTOP zatrzymuje wątek główny, pozostałe są unicestwiane. SIGUSR1 nie powoduje wyświetlenia komunikatu, lecz kończy wszystkie wątki.
+	SIGTERM kończy wszystkie wątki.
+	3. 
+		- SIGTERM, SIGUSR1: zakończenie wszystkich wątków bez żadnych komunikatów
+		- SIGKILL: Unicestwienie wszystkich wątków, stosowny komunikat. Sygnału nie można obsłużyć.
+		- SIGSTOP: Sygnału nie można obsłużyć, zatrzymanie wątku głównego i zakończenie pozostałych.
+
+	4.  - SIGTERM: Program wykunuje się normalnie, jakby nie otrzymał żadnego sygnału.
+		- SIGUSR1: Program wykunuje się normalnie, jakby nie otrzymał żadnego sygnału.
+		- SIGKILL: Unicestwia wszystkie wątki, stosowny komunikat.
+		- SIGSTOP: Zatrzymane wszystkie utworzone wątki.
+
+	5.  - SIGTERM: Wątek obsługuje sygnał, reszta nie reaguje.
+		- SIGUSR1: Wątek obsługuje sygnał, reszta nie reaguje.
+		- SIGKILL: Unicestwia wszystkie wątki, stosowny komunikat.
+		- SIGSTOP: Zatrzymane wszystkie utworzone wątki.
+
+b)
+	Komunikat: Błąd w obliczeniach zmiennoprzecinkowych (zrzut pamięci)
+	Wszystkie wątki zostały unicestwione.
+
+-------------------------------------------------------------------------
+System:
+	4.4.0-22-generic #39~14.04.1-Ubuntu SMP x86_64 GNU/Linux
+Komputer:
+	Laptop Lenovo W520, i7-2720QM (2,2 GHz)
