@@ -1,0 +1,9 @@
+Zadanie 2. Program korzystający z biblioteki
+
+Napisz przykładowy program testujący działanie funkcji z biblioteki zadania 1. W programie wybierz co najmniej 4 punkty kontrolne (wśród których jest początek i koniec programu). Dla każdego z tych punktów kontrolnych wypisz informacje o aktualnym czasie wykonania (rzeczywistym, użytkownika, systemowym), opisujące dany punkt kontrolny: różnice czasów w odniesieniu do pierwszego i poprzedniego punktu kontrolnego.
+
+Przygotuj plik Makefile, zawierający polecenia kompilujące programy na trzy sposoby:
+- z wykorzystaniem bibliotek statycznych,
+- z wykorzystaniem bibliotek dzielonych (dynamiczne, ładowane przy uruchomieniu programu),
+- z wykorzystaniem bibliotek ładowanych dynamicznie (dynamiczne, ładowane przez program),
+oraz uruchamiający testy.
