@@ -20,16 +20,14 @@ NAME="ZagorskiMichal" # Archive's name first part
 OP="-cvzf"
 #extension of file
 EXT=".tar.gz"
-CW=cw$1
+CW="cw$1"
 
 # Case with no arguments
-if [ $# -eq 0 ]
-  then
-	echo "Wrong argument of script!"
-	echo "Read manual inside this file"
-elif [ $# -eq 1 ]
-  then	
-	#full command
-	tar $OP $NAME-$CW$EXT $NAME/$CW
+if [ $# -eq 0 ]; then
+    echo "Wrong argument of script!"
+    echo "Read manual inside this file"
+elif [ $# -eq 1 ]; then
+    # full command
+    tar "${OP}" "${NAME}-${CW}${EXT}" "${NAME}/${CW}"
 fi
 
